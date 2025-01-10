@@ -14,6 +14,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Member {
     @Id
+    @Column(name = "MEMBER_ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 사용자 식별 고유 아이디
 

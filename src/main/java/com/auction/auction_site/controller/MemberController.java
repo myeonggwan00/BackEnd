@@ -1,9 +1,9 @@
 package com.auction.auction_site.controller;
 
 import com.auction.auction_site.dto.ApiResponse;
-import com.auction.auction_site.dto.MemberDto;
-import com.auction.auction_site.dto.UpdateMemberDto;
-import com.auction.auction_site.security.jwt.JWTUtil;
+import com.auction.auction_site.dto.member.MemberDetailsDto;
+import com.auction.auction_site.dto.member.MemberDto;
+import com.auction.auction_site.dto.member.UpdateMemberDto;
 import com.auction.auction_site.service.MemberService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,13 +22,13 @@ public class MemberController {
     private final MemberService memberService;
 
     /**
-     * 회원 목록
+     * 회원 정보 조회
      */
-    @GetMapping
-    public String register(@RequestHeader("Authorization") String authorization) {
+    @GetMapping("/me")
+    public ResponseEntity<?> getDetails(@RequestHeader("Authorization") String authorization) {
         String token = authorization.split(" ")[1];
-
-        return "register page";
+        MemberDetailsDto memberDetails = memberService.getMemberDetails(token);
+        return ResponseEntity.ok(new ApiResponse("success", "회원 정보 조회 완료", memberDetails));
     }
 
     @GetMapping("/id")
