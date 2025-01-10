@@ -1,12 +1,13 @@
-package com.auction.auction_site.dto;
+package com.auction.auction_site.dto.member;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter @Setter
+@Getter
+@Setter
 @AllArgsConstructor
-public class LoginMemberDto {
-    private String loginId;
+public class UpdateMemberDto {
+    private String nickname;
     private String password;
 }

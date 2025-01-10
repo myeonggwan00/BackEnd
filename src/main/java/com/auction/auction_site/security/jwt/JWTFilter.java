@@ -1,6 +1,6 @@
 package com.auction.auction_site.security.jwt;
 
-import com.auction.auction_site.dto.MemberDto;
+import com.auction.auction_site.dto.member.MemberDto;
 import com.auction.auction_site.entity.Role;
 import com.auction.auction_site.security.oauth.CustomOAuth2User;
 import io.jsonwebtoken.ExpiredJwtException;

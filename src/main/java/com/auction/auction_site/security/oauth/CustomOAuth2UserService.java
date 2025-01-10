@@ -1,6 +1,6 @@
 package com.auction.auction_site.security.oauth;
 
-import com.auction.auction_site.dto.MemberDto;
+import com.auction.auction_site.dto.member.MemberDto;
 import com.auction.auction_site.dto.oauth.GoogleResponse;
 import com.auction.auction_site.dto.oauth.KakaoResponse;
 import com.auction.auction_site.dto.oauth.NaverResponse;

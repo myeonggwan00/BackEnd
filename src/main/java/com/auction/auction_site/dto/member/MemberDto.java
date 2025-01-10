@@ -1,4 +1,4 @@
-package com.auction.auction_site.dto;
+package com.auction.auction_site.dto.member;
 
 import com.auction.auction_site.entity.Member;
 import com.auction.auction_site.entity.Role;

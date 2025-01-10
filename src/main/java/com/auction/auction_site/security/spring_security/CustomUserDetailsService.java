@@ -1,6 +1,6 @@
 package com.auction.auction_site.security.spring_security;
 
-import com.auction.auction_site.dto.MemberDto;
+import com.auction.auction_site.dto.member.MemberDto;
 import com.auction.auction_site.entity.Member;
 import com.auction.auction_site.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;

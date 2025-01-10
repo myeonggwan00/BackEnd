@@ -1,6 +1,6 @@
 package com.auction.auction_site.security.spring_security;
 
-import com.auction.auction_site.dto.LoginMemberDto;
+import com.auction.auction_site.dto.member.LoginMemberDto;
 import com.auction.auction_site.entity.RefreshToken;
 import com.auction.auction_site.repository.RefreshTokenRepository;
 import com.auction.auction_site.security.jwt.JWTUtil;
