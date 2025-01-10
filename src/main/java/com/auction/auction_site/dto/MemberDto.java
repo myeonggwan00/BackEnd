@@ -21,6 +21,8 @@ public class MemberDto {
 
     private Role role;
 
+    private String email;
+
     public MemberDto() {}
 
     // 엔티티 → DTO 변환 메서드
@@ -30,6 +32,7 @@ public class MemberDto {
                 .password(member.getPassword())
                 .name(member.getName())
                 .nickname(member.getNickname())
+                .email(member.getEmail())
                 .role(member.getRole())
                 .build();
     }

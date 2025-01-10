@@ -25,6 +25,9 @@ public class Member {
 
     private String password; // 로그인시 사용되는 사용자 비밀번호
 
+    private String email;
+
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private Role role = Role.ROLE_USER; // 권한(사용자, 관리자)
