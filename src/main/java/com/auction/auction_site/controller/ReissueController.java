@@ -1,6 +1,5 @@
 package com.auction.auction_site.controller;
 
-import com.auction.auction_site.utils.Utility;
 import com.auction.auction_site.entity.RefreshToken;
 import com.auction.auction_site.repository.RefreshTokenRepository;
 import com.auction.auction_site.security.jwt.JWTUtil;

@@ -83,7 +83,7 @@ public class MemberController {
      * 회원 삭제
      */
     @DeleteMapping("/me")
-    public ResponseEntity<SuccessResponse> delete(@RequestHeader("Authorization") String authorization, HttpServletResponse response) throws IOException {
+    public ResponseEntity<SuccessResponse> delete(@RequestHeader("Authorization") String authorization, HttpServletResponse response) {
         String token = authorization.split(" ")[1];
 
         memberService.deleteProcess(token);
