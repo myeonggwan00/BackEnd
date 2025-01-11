@@ -10,24 +10,15 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Getter @Setter
-public class MemberDto {
+public class MemberResponseDto {
     private String loginId;
-
-    private String password;
-
     private String nickname;
-
     private String email;
-
     private Role role;
 
-    public MemberDto() {}
-
-    // 엔티티 → DTO 변환 메서드
-    public static MemberDto fromMember(Member member) {
-        return MemberDto.builder()
+    public static MemberResponseDto from(Member member) {
+        return MemberResponseDto.builder()
                 .loginId(member.getLoginId())
-                .password(member.getPassword())
                 .nickname(member.getNickname())
                 .email(member.getEmail())
                 .role(member.getRole())

@@ -2,6 +2,7 @@ package com.auction.auction_site.service;
 
 import com.auction.auction_site.dto.member.MemberDetailsDto;
 import com.auction.auction_site.dto.member.MemberDto;
+import com.auction.auction_site.dto.member.MemberResponseDto;
 import com.auction.auction_site.dto.member.UpdateMemberDto;
 import com.auction.auction_site.entity.Member;
 import com.auction.auction_site.entity.Product;
@@ -67,7 +68,7 @@ public class MemberService {
         return new MemberDetailsDto(member.getLoginId(), member.getNickname(), productStatusDtos);
     }
 
-    public MemberDto registerProcess(MemberDto memberDto) {
+    public MemberResponseDto registerProcess(MemberDto memberDto) {
         if(memberRepository.existsByLoginId(memberDto.getLoginId())) { // 중복 검사
             throw new IllegalStateException("이미 존재하는 회원입니다.");
         }
@@ -75,20 +76,18 @@ public class MemberService {
         Member member = Member.builder()
                 .loginId(memberDto.getLoginId())
                 .password(bCryptPasswordEncoder.encode(memberDto.getPassword()))
-                .name(memberDto.getName())
                 .nickname(memberDto.getNickname())
+                .email(memberDto.getEmail())
                 .registerDate(LocalDate.now())
                 .build();
 
         memberRepository.save(member);
 
-        return memberDto.fromMember(member);
+        return MemberResponseDto.from(member);
     }
 
     @Transactional
-    public MemberDto updateMember(UpdateMemberDto updateMemberDto, String token) {
-//        User user = userRepository.findById(id).orElseThrow(() -> new EntityNotFound("User with id " + id + " not found"));
-
+    public MemberResponseDto updateMember(UpdateMemberDto updateMemberDto, String token) {
         String loginId = jwtUtil.getLoginId(token);
 
         Member member = memberRepository.findByLoginId(loginId);
@@ -96,7 +95,7 @@ public class MemberService {
         member.setNickname(updateMemberDto.getNickname());
         member.setPassword(bCryptPasswordEncoder.encode(updateMemberDto.getPassword()));
 
-        return MemberDto.fromMember(member);
+        return MemberResponseDto.from(member);
     }
 
     @Transactional

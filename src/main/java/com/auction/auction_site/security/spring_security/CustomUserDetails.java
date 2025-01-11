@@ -44,4 +44,12 @@ public class CustomUserDetails implements UserDetails {
     public String getUsername() {
         return memberDto.getLoginId();
     } // username이 아닌 userId로 인증 처리
+
+    public String getEmail() {
+        return memberDto.getEmail();
+    }
+
+    public String getNickname() {
+        return memberDto.getNickname();
+    }
 }

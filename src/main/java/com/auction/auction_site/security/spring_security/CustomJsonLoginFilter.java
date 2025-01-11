@@ -1,7 +1,9 @@
 package com.auction.auction_site.security.spring_security;
 
 import com.auction.auction_site.dto.member.LoginMemberDto;
+import com.auction.auction_site.dto.member.MemberResponseDto;
 import com.auction.auction_site.entity.RefreshToken;
+import com.auction.auction_site.entity.Role;
 import com.auction.auction_site.repository.RefreshTokenRepository;
 import com.auction.auction_site.security.jwt.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,10 +22,8 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 
 import static com.auction.auction_site.utils.Utility.*;
-import static com.auction.auction_site.utils.Utility.createErrorResponse;
 import static com.auction.auction_site.utils.ConstantConfig.*;
 
 /**
@@ -86,12 +86,16 @@ public class CustomJsonLoginFilter extends AbstractAuthenticationProcessingFilte
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
                                             FilterChain chain, Authentication authentication) throws IOException {
-        // username 정보 가져오기
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        String loginId = userDetails.getUsername();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal(); // 회원 정보
+        String loginId = userDetails.getUsername(); // 회원 로그인 아이디
+        String role = authentication.getAuthorities().iterator().next().getAuthority(); // 회원 권한
 
-        // role 정보 가져오기
-        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        MemberResponseDto memberResponseDto = MemberResponseDto.builder()
+                .loginId(loginId)
+                .email(userDetails.getEmail())
+                .role(Role.valueOf(role))
+                .nickname(userDetails.getNickname())
+                .build();
 
         // JWT 토큰(access, refresh) 생성
         String accessToken = jwtUtil.createJwt("access", loginId, role, ACCESS_EXPIRED_MS);
@@ -106,13 +110,9 @@ public class CustomJsonLoginFilter extends AbstractAuthenticationProcessingFilte
         refreshTokenRepository.save(refreshTokenEntity);
 
 
-        HashMap<String, Object> hashMap = new HashMap<>();
-        hashMap.put("loginId", loginId);
-        hashMap.put("role", role);
-
         response.addHeader("Authorization", "Bearer " + accessToken);
         response.addCookie(createCookie(refreshToken));
-        createSuccessResponse(response, "success", "로그인 성공", hashMap);
+        sendSuccessJsonResponse(response, "로그인 성공", memberResponseDto);
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
@@ -120,7 +120,7 @@ public class CustomJsonLoginFilter extends AbstractAuthenticationProcessingFilte
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
                                               AuthenticationException failed) throws IOException {
 
-        createErrorResponse(response, "fail", "UNAUTHORIZED", "로그인 실패");
+        sendErrorJsonResponse(response, "UNAUTHORIZED", "로그인 실패");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
 
