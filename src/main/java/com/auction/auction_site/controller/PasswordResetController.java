@@ -22,9 +22,9 @@ public class PasswordResetController {
     /**
      *  uuid 생성, 메일 전송
      */
-    @PostMapping("/send-mail")
-    public ResponseEntity<SuccessResponse> passwordRecoverySendEmail(@RequestBody MailDto mailDto){
-        passwordResetService.
-    }
+//    @PostMapping("/send-mail")
+//    public ResponseEntity<SuccessResponse> passwordRecoverySendEmail(@RequestBody MailDto mailDto){
+//        passwordResetService.
+//    }
 
 }
