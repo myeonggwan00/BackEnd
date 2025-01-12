@@ -18,13 +18,16 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 사용자 식별 고유 아이디
 
+    @Column(length = 30, nullable = false)
     private String loginId; // 로그인시 사용되는 사용자 아이디
-
+    @Column(length = 60, nullable = false)
     private String password; // 로그인시 사용되는 사용자 비밀번호
-
+    @Column(length = 30, nullable = false)
     private String nickname; // 사용자 닉네임
-
+    @Column(length = 100, nullable = false)
     private String email;
+
+
 
     @Enumerated(EnumType.STRING)
     @Builder.Default

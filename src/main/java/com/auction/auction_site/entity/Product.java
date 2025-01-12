@@ -20,7 +20,9 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 60, nullable = false)
     private String productName;
+    @Column(length = 1000, nullable = false)
     private String productDetail;
     private Long startPrice;
     private Long bidStep;
