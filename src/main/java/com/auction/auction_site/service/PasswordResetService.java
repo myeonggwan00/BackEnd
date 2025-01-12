@@ -11,24 +11,24 @@ public class PasswordResetService {
 
     @Autowired
     private MemberRepository memberRepository;
-
-    /**
-     *  이메일 확인
-     */
-    public findMemberByEmail
-
-
-    /**
-     * 메일 전송
-     * - 비밀번호 재설정 url
-     */
-    public String sendPasswordResetMail(String email){
-
-    }
-
-
-    public String makeUUID(){
-        return UUID.randomUUID().toString();
-    }
+//
+//    /**
+//     *  이메일 확인
+//     */
+//    public findMemberByEmail
+//
+//
+//    /**
+//     * 메일 전송
+//     * - 비밀번호 재설정 url
+//     */
+//    public String sendPasswordResetMail(String email){
+//
+//    }
+//
+//
+//    public String makeUUID(){
+//        return UUID.randomUUID().toString();
+//    }
 
 }

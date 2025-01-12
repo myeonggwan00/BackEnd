@@ -21,8 +21,6 @@ public class MemberDto {
 
     private Role role;
 
-    private String email;
-
     public MemberDto() {}
 
     // 엔티티 → DTO 변환 메서드
