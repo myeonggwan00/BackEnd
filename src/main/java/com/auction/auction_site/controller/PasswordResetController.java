@@ -1,8 +1,9 @@
 package com.auction.auction_site.controller;
 
-import com.auction.auction_site.dto.ApiResponse;
+
+import com.auction.auction_site.dto.SuccessResponse;
 import com.auction.auction_site.dto.mail.MailDto;
-import com.auction.auction_site.dto.mail.PasswordRequestDto;
+
 import com.auction.auction_site.service.PasswordResetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class PasswordResetController {
      *  uuid 생성, 메일 전송
      */
     @PostMapping("/send-mail")
-    public ResponseEntity<ApiResponse> passwordRecoverySendEmail(@RequestBody MailDto mailDto){
+    public ResponseEntity<SuccessResponse> passwordRecoverySendEmail(@RequestBody MailDto mailDto){
         passwordResetService.
     }
 
