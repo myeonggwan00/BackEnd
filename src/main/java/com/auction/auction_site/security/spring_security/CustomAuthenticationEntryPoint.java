@@ -9,13 +9,13 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-import static com.auction.auction_site.utils.Utility.createErrorResponse;
+import static com.auction.auction_site.utils.Utility.sendErrorJsonResponse;
 
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        createErrorResponse(response, "fail", "UNAUTHORIZED", "인증되지 않은 사용자입니다.");
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
+        sendErrorJsonResponse(response, "UNAUTHORIZED", "인증되지 않은 사용자입니다.");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
 }

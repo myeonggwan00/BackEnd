@@ -1,0 +1,26 @@
+services:
+  db:
+    image: mysql:8.0.40
+    restart: always
+    volumes:
+      - ./db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: auction
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user1234
+
+  app:
+    depends_on:
+      - db
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_DRIVER: com.mysql.cj.jdbc.Driver
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/auction?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&serverTimezone=Asia/Seoul
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: user1234
+    entrypoint: ["./wait-for-it.sh", "db:3306", "--", "java", "-jar", "/app.jar"]

@@ -1,4 +1,4 @@
-package com.auction.auction_site.dto;
+package com.auction.auction_site.dto.member;
 
 import com.auction.auction_site.entity.Member;
 import com.auction.auction_site.entity.Role;
@@ -10,27 +10,15 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Getter @Setter
-public class MemberDto {
+public class MemberResponseDto {
     private String loginId;
-
-    private String password;
-
-    private String name;
-
     private String nickname;
-
+    private String email;
     private Role role;
 
-    private String email;
-
-    public MemberDto() {}
-
-    // 엔티티 → DTO 변환 메서드
-    public static MemberDto fromMember(Member member) {
-        return MemberDto.builder()
+    public static MemberResponseDto from(Member member) {
+        return MemberResponseDto.builder()
                 .loginId(member.getLoginId())
-                .password(member.getPassword())
-                .name(member.getName())
                 .nickname(member.getNickname())
                 .email(member.getEmail())
                 .role(member.getRole())
