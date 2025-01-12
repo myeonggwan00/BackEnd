@@ -1,6 +1,6 @@
 package com.auction.auction_site.security.oauth;
 
-import com.auction.auction_site.dto.MemberDto;
+import com.auction.auction_site.dto.member.MemberDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -42,7 +42,7 @@ public class CustomOAuth2User implements OAuth2User {
 
     @Override
     public String getName() {
-        return memberDto.getName();
+        return memberDto.getLoginId();
     }
 
     public String getLoginId() {

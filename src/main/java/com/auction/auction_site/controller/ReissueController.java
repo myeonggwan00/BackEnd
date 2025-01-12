@@ -1,6 +1,5 @@
 package com.auction.auction_site.controller;
 
-import com.auction.auction_site.utils.Utility;
 import com.auction.auction_site.entity.RefreshToken;
 import com.auction.auction_site.repository.RefreshTokenRepository;
 import com.auction.auction_site.security.jwt.JWTUtil;
@@ -9,14 +8,13 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.Date;
 import static com.auction.auction_site.utils.ConstantConfig.*;
+import static com.auction.auction_site.utils.Utility.*;
 
 /**
  * ReissueController
@@ -38,14 +36,14 @@ public class ReissueController {
     private final RefreshTokenRepository refreshTokenRepository;
 
     @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void reissue(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String refreshToken = null;
 
         Cookie[] cookies = request.getCookies();
 
         if(cookies == null) {
-            Utility.createErrorResponse(response, "fail",  "UNAUTHORIZED", "토큰 재발급시 필요한 인증 정보가 없습니다.");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            sendErrorJsonResponse(response, "UNAUTHORIZED", "토큰 재발급시 필요한 인증 정보가 없습니다.");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
 
 
@@ -56,22 +54,22 @@ public class ReissueController {
         }
 
         if(refreshToken == null) { // Refresh 토큰의 널 체크
-            Utility.createErrorResponse(response, "fail", "UNAUTHORIZED", "토큰 재발급시 필요한 인증 정보가 없습니다.");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            sendErrorJsonResponse(response, "UNAUTHORIZED", "토큰 재발급시 필요한 인증 정보가 없습니다.");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
 
         try { // Refresh 토큰의 만료여부 확인
             jwtUtil.isExpired(refreshToken);
         } catch(ExpiredJwtException e) {
-            Utility.createErrorResponse(response, "fail", "EXPIRED", "토큰이 만료되었습니다.");
-            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+            sendErrorJsonResponse(response, "EXPIRED", "토큰이 만료되었습니다.");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
 
         String category = jwtUtil.getCategory(refreshToken); // Refresh 토큰의 category 값 가져오기
 
         if(!category.equals("refresh")) { // JWT 토큰이 Refresh 토큰인지 확인
-            Utility.createErrorResponse(response, "fail", "UNAUTHORIZED", "유효하지 않은 토큰입니다.");
-            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+            sendErrorJsonResponse(response, "UNAUTHORIZED", "유효하지 않은 토큰입니다.");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
 
         // Refresh 토큰에서 username, role 가져오기
@@ -97,8 +95,8 @@ public class ReissueController {
         // access 토큰은 헤더에, refresh 토큰은 쿠키에 담아서 응답
         response.setHeader("Authorization", "Bearer " + newAccessToken);
         response.addCookie(createCookie(newRefreshToken));
-        Utility.createSuccessResponse(response, "success", "토큰 재발급 완료", null);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        sendSuccessJsonResponse(response, "토큰 재발급 완료", null);
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 
     private Cookie createCookie(String value) {

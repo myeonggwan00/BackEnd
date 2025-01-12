@@ -25,6 +25,7 @@ public class Product {
     private Long startPrice;
     private Long bidStep;
     private Date auctionEndDate;
+    @Builder.Default
     private Boolean productStatus = true;
     @CreatedDate
     @Column(updatable = false)
@@ -33,6 +34,6 @@ public class Product {
     private Date updatedAt;
     private int viewCount;
     @ManyToOne(fetch = FetchType.LAZY) // 다대일 관계
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "MEMBER_ID", nullable = false)
     private  Member member;
 }

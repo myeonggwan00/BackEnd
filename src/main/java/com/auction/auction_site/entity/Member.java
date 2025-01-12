@@ -14,16 +14,17 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Member {
     @Id
+    @Column(name = "MEMBER_ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 사용자 식별 고유 아이디
 
     private String loginId; // 로그인시 사용되는 사용자 아이디
 
-    private String name; // 사용자 이름
+    private String password; // 로그인시 사용되는 사용자 비밀번호
 
     private String nickname; // 사용자 닉네임
 
-    private String password; // 로그인시 사용되는 사용자 비밀번호
+    private String email;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default

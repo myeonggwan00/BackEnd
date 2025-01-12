@@ -15,8 +15,7 @@ import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
 
-import static com.auction.auction_site.utils.Utility.createErrorResponse;
-import static com.auction.auction_site.utils.Utility.createSuccessResponse;
+import static com.auction.auction_site.utils.Utility.*;
 
 @RequiredArgsConstructor
 public class CustomLogoutFilter extends GenericFilterBean {
@@ -52,7 +51,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
         Cookie[] cookies = request.getCookies();
 
         if(cookies == null) {
-            createErrorResponse(response, "fail", "UNAUTHORIZED", "로그아웃에 필요한 인증 정보가 없습니다.");
+            sendErrorJsonResponse(response, "UNAUTHORIZED", "로그아웃에 필요한 인증 정보가 없습니다.");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
@@ -65,7 +64,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
         // refresh 토큰 널 체크
         if (refresh == null) {
-            createErrorResponse(response, "fail", "UNAUTHORIZED", "로그아웃에 필요한 인증 정보가 없습니다.");
+            sendErrorJsonResponse(response, "UNAUTHORIZED", "로그아웃에 필요한 인증 정보가 없습니다.");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
@@ -73,7 +72,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
         try {
             jwtUtil.isExpired(refresh); // refresh 토큰 만료되었느지 확인
         } catch(ExpiredJwtException e) {
-            createErrorResponse(response, "fail", "EXPIRED", "토큰이 만료되어 이미 로그아웃된 상태입니다.");
+            sendErrorJsonResponse(response, "EXPIRED", "토큰이 만료되어 이미 로그아웃된 상태입니다.");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             refreshTokenRepository.deleteByRefreshToken(refresh);
             return;
@@ -83,7 +82,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
         // 발급된 토큰이 유형 확인
         if(!category.equals("refresh")) {
-            createErrorResponse(response, "fail", "UNAUTHORIZED", "유효하지 않은 토큰입니다.");
+            sendErrorJsonResponse(response, "UNAUTHORIZED", "유효하지 않은 토큰입니다.");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
@@ -92,7 +91,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
         // refresh 토큰이 데이터베이스에 저장되어 있는지 확인
         if(!isExist) {
-            createErrorResponse(response, "fail", "UNAUTHORIZED", "유효하지 않은 토큰입니다.");
+            sendErrorJsonResponse(response, "UNAUTHORIZED", "유효하지 않은 토큰입니다.");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
@@ -104,8 +103,8 @@ public class CustomLogoutFilter extends GenericFilterBean {
         cookie.setMaxAge(0);
         cookie.setPath("/");
 
-        createSuccessResponse(response,"success", "로그아웃 완료", null);
         response.addCookie(cookie);
+        sendSuccessJsonResponse(response, "로그아웃 완료", null);
         response.setStatus(HttpServletResponse.SC_OK);
     }
 }

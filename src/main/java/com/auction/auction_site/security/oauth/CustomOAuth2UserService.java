@@ -1,6 +1,6 @@
 package com.auction.auction_site.security.oauth;
 
-import com.auction.auction_site.dto.MemberDto;
+import com.auction.auction_site.dto.member.MemberDto;
 import com.auction.auction_site.dto.oauth.GoogleResponse;
 import com.auction.auction_site.dto.oauth.KakaoResponse;
 import com.auction.auction_site.dto.oauth.NaverResponse;
@@ -70,8 +70,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             Member member = Member.builder()
                     .loginId(oAuth2Response.getEmail())
                     .password(oAuth2Response.getProviderId()) // 제공자 내부에서 사용자를 식별하는 고유 ID로 비밀번호로 처리
-                    .name(oAuth2Response.getName())
                     .nickname(oAuth2Response.getNickname())
+                    .email(oAuth2Response.getEmail())
                     .registerDate(LocalDate.now())
                     .build();
 
@@ -81,7 +81,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         } else { // 유저 정보가 있으면 업데이트
             findMember.setLoginId(oAuth2Response.getEmail());
-            findMember.setName(oAuth2Response.getName());
 
             memberRepository.save(findMember);
 

@@ -1,7 +1,7 @@
 package com.auction.auction_site.controller;
 
-import com.auction.auction_site.dto.ApiResponse;
 import com.auction.auction_site.dto.ErrorResponse;
+import com.auction.auction_site.dto.SuccessResponse;
 import com.auction.auction_site.dto.product.ProductRequestDto;
 import com.auction.auction_site.dto.product.ProductResponseDto;
 import com.auction.auction_site.security.oauth.CustomOAuth2User;
@@ -25,7 +25,7 @@ public class ProductController {
      * 상품 등록
      */
     @PostMapping
-    public ResponseEntity<ApiResponse> createProduct(@RequestBody ProductRequestDto productRequestDto) {
+    public ResponseEntity<SuccessResponse> createProduct(@RequestBody ProductRequestDto productRequestDto) {
 
         String loginId = ((CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getLoginId();
         //   System.out.println("Principal Type: " + principal.getClass().getName());
@@ -38,13 +38,9 @@ public class ProductController {
 
         ProductResponseDto createdProduct = productService.createProduct(productRequestDto, loginId);
 
-        // 응답 생성
-        ApiResponse response = new ApiResponse(
-                "success",
-                "상품이 성공적으로 생성되었습니다.",
-                createdProduct
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(SuccessResponse.success("상품이 성공적으로 생성되었습니다.", createdProduct));
 
     }
     /**
@@ -71,7 +67,7 @@ public class ProductController {
      상품 수정
      */
     @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponse>productUpdate(@PathVariable Long id, @RequestBody ProductRequestDto dto){
+    public ResponseEntity<SuccessResponse>productUpdate(@PathVariable Long id, @RequestBody ProductRequestDto dto){
         String loginId = ((CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getLoginId();
         if (loginId == null || loginId.trim().isEmpty()) {
 
@@ -83,14 +79,10 @@ public class ProductController {
         }
 
         ResponseEntity<?> updatedProduct = productService.productUpdate(id, loginId, dto);
-        // 응답 생성
-        ApiResponse response = new ApiResponse(
-                "success",
-                "상품이 성공적으로 수정되었습니다.",
-                updatedProduct
-        );
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(SuccessResponse.success("상품이 성공적으로 수정되었습니다.", updatedProduct));
 
     }
 

@@ -1,6 +1,6 @@
 package com.auction.auction_site.security.jwt;
 
-import com.auction.auction_site.dto.MemberDto;
+import com.auction.auction_site.dto.member.MemberDto;
 import com.auction.auction_site.entity.Role;
 import com.auction.auction_site.security.oauth.CustomOAuth2User;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -43,7 +43,7 @@ public class JWTFilter extends OncePerRequestFilter {
         try {
             jwtUtil.isExpired(token); // 토큰이 만료되었는지 확인
         } catch (ExpiredJwtException e) {
-            createErrorResponse(response, "fail", "EXPIRED", "토큰이 만료되었습니다.");
+            sendErrorJsonResponse(response, "EXPIRED", "토큰이 만료되었습니다.");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
             // doFilter 메서드를 통해 다음 필터를 호출하면 안된다.
@@ -54,7 +54,7 @@ public class JWTFilter extends OncePerRequestFilter {
         String category = jwtUtil.getCategory(token); // 토큰에서 category 값 가져오기
 
         if (!category.equals("access")) { // category 값이 access가 아닌 경우
-            createErrorResponse(response, "fail", "UNAUTHORIZED", "유효하지 않은 토큰입니다.");
+            sendErrorJsonResponse(response, "UNAUTHORIZED", "유효하지 않은 토큰입니다.");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
