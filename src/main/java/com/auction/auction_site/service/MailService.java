@@ -19,7 +19,7 @@ public class MailService {
    * 메일 전송
   */
     public void sendPasswordResetEmail(String email, String token) {
-        String resetLink = "https://yourdomain.com/reset-password?token=" + token;
+        String resetLink = "http://localhost:8080/pwdhelp/reset-password?token=" + token; // 링크 클릭시 비밀번호 재설정창 이동
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -27,12 +27,12 @@ public class MailService {
 
             helper.setTo(email);
             helper.setSubject("Password Reset Request");
-            helper.setText("<p>Click the link below to reset your password:</p>" +
-                    "<a href=\"" + resetLink + "\">Reset Password</a>", true);
+            helper.setText("<p>링크를 클릭하고 비밀번호를 재설정 하세요.:</p>" +
+                    "<a href=\"" + resetLink + "\">비밀번호 재설정</a>", true); //true면 html
 
             mailSender.send(message);
         } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send email", e);
+            throw new RuntimeException("메일 전송에 실패했습니다.", e);
         }
     }
 
