@@ -37,12 +37,12 @@ public class PasswordResetController {
     }
 
     /**
-     *  비밀번호 재설정 페이지 로드 (GET 요청)
+     *  비밀번호 재설정 페이지 로드
      */
     @GetMapping("/reset-password")
     public ResponseEntity<SuccessResponse> getResetPasswordPage(@RequestParam("token") String token) {
-        // 토큰의 유효성 검증 또는 프론트엔드에서 처리할 토큰 전달
-        return ResponseEntity.ok(SuccessResponse.success("비밀번호 재설정 페이지를 로드합니다.", null));
+        //토큰값 전달
+        return ResponseEntity.ok(SuccessResponse.success("비밀번호 재설정 페이지를 로드합니다.", token));
     }
 
 

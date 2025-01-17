@@ -1,5 +1,7 @@
 package com.auction.auction_site.service;
 
+import com.auction.auction_site.dto.ErrorResponse;
+import com.auction.auction_site.dto.SuccessResponse;
 import com.auction.auction_site.entity.Member;
 import com.auction.auction_site.entity.MemberResetToken;
 import com.auction.auction_site.repository.MemberRepository;
@@ -9,6 +11,8 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -38,12 +42,17 @@ public class PasswordResetService {
     /**
      *  이메일 확인
      */
-    public Member findMemberByEmail(String email) {
+    public ResponseEntity<?> findMemberByEmail(String email) {
+        ErrorResponse errorResponse = new ErrorResponse();
         Member member = memberRepository.findByEmail(email);
         if (member == null) {
-            throw new RuntimeException("이메일에 해당하는 사용자를 찾을 수 업습니다. : " + email);
+            errorResponse.setStatus("FAIL");
+            errorResponse.setCode("UNAUTHORIZED");
+            errorResponse.setMessage("이메일에 해당하는 사용자를 찾을 수 없습니다.:" + email);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
-        return member;
+
+        return ResponseEntity.ok(member);
     }
 
 
@@ -66,16 +75,27 @@ public class PasswordResetService {
     /**
      * 비밀번호 재설정
      */
-    public void resetPassword(String email, String token, String newPassword) {
+    public ResponseEntity<?>  resetPassword(String email, String token, String newPassword) {
+
+        ErrorResponse errorResponse = new ErrorResponse();
+        SuccessResponse successResponse = new SuccessResponse();
+
         MemberResetToken resetToken = ResetTokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("유효하지 않은 토큰입니다."));
 
         if (!resetToken.getEmail().equals(email)) {
-            throw new RuntimeException("이메일이 토큰과 일치하지 않습니다.");
+            errorResponse.setStatus("FAIL");
+            errorResponse.setMessage("이메일이 토큰과 일치하지 않습니다.");
+            errorResponse.setCode("UNAUTHORIZED");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
 
         if (resetToken.getExpirationDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("토큰이 만료되었습니다.");
+            errorResponse.setStatus("FAIL");
+            errorResponse.setMessage("토큰이 만료되었습니다.");
+            errorResponse.setCode("FORBIDDEN");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+
         }
 
         // 비밀번호 변경
@@ -85,5 +105,8 @@ public class PasswordResetService {
 
         //토큰 삭제
         ResetTokenRepository.delete(resetToken);
+        successResponse.setStatus("SUCCESS");
+       successResponse.setMessage("비밀번호가 성공적으로 변경되었습니다.");
+        return ResponseEntity.ok().body(successResponse);
     }
 }
