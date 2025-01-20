@@ -2,10 +2,12 @@ package com.auction.auction_site.controller;
 
 import com.auction.auction_site.dto.ErrorResponse;
 import com.auction.auction_site.dto.SuccessResponse;
+import com.auction.auction_site.dto.mail.MailDto;
 import com.auction.auction_site.dto.member.MemberDetailsDto;
 import com.auction.auction_site.dto.member.MemberDto;
 import com.auction.auction_site.dto.member.MemberResponseDto;
 import com.auction.auction_site.dto.member.UpdateMemberDto;
+import com.auction.auction_site.service.MailService;
 import com.auction.auction_site.service.MemberService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,12 +16,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-
 @RestController
 @RequestMapping("/members")
 @RequiredArgsConstructor
 public class MemberController {
+    private final MailService mailService;
     private final MemberService memberService;
 
     /**
@@ -52,6 +53,34 @@ public class MemberController {
         }
 
         return ResponseEntity.ok().body(SuccessResponse.success("사용 가능한 닉네임 입니다.", null));
+    }
+
+    @PostMapping("/email-verification")
+    public ResponseEntity<?> sendEmailVerification(@RequestBody MailDto mailDto) {
+        System.out.println("email = " + mailDto.getEmail());
+        String token = memberService.createToken(mailDto.getEmail());
+        mailService.sendVerificationEmail(mailDto.getEmail(), token);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(SuccessResponse.success("이메일 인증 링크 전송 완료", null));
+    }
+
+    @GetMapping("/email-verification")
+    public ResponseEntity<?> checkEmailVerification(@RequestParam String token) {
+
+        boolean checkEmail = memberService.checkEmail(token);
+
+        if(!checkEmail) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorResponse.error("AUTHENTICATION_FAILED", "본인 인증에 실패했습니다."));
+        }
+
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(SuccessResponse.success("AUTHENTICATION_SUCCESS", "본인 인증에 성공했습니다."));
     }
 
     /**
