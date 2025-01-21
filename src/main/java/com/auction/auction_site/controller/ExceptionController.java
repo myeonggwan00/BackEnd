@@ -1,7 +1,10 @@
 package com.auction.auction_site.controller;
 
+import com.auction.auction_site.exception.EmailSendException;
 import com.auction.auction_site.exception.EntityNotFound;
 import com.auction.auction_site.dto.ErrorResponse;
+import com.auction.auction_site.exception.ExpiredTokenException;
+import com.auction.auction_site.exception.InvalidTokenException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,5 +33,26 @@ public class ExceptionController { // 예외 처리용 컨트롤러
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("fail", "NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("fail", "BAD_REQUEST", "유요하지 않은 토큰입니다."));
+    }
+
+    @ExceptionHandler(ExpiredTokenException.class)
+    public ResponseEntity<ErrorResponse> handleExpiredTokenException(ExpiredTokenException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("fail", "FORBIDDEN", "토큰이 만료되었습니다."));
+    }
+
+    @ExceptionHandler(EmailSendException.class)
+    public ResponseEntity<ErrorResponse> handleEmailSendException(EmailSendException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("fail", "BAD_REQUEST", "메일 전송에 실패했습니다."));
     }
 }
