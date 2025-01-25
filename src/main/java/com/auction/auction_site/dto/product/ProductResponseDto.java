@@ -4,8 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @AllArgsConstructor
 @Builder
@@ -18,9 +22,10 @@ public class ProductResponseDto {
     String productDetail;
     Long startPrice;
     Long bidStep;
-    Date auctionEndDate;
+    LocalDateTime auctionEndDate;
     Boolean productStatus;
-    Date createdAt;
-    Date updatedAt;
-    int viewCount;
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
+     List<String> imageUrls;
+        int viewCount;
 }
