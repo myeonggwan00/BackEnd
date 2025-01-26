@@ -8,6 +8,7 @@ import com.auction.auction_site.security.oauth.CustomOAuth2User;
 import com.auction.auction_site.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,8 +25,8 @@ public class ProductController {
     /**
      * 상품 등록
      */
-    @PostMapping
-    public ResponseEntity<SuccessResponse> createProduct(@RequestBody ProductRequestDto productRequestDto) {
+    @PostMapping( consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SuccessResponse> createProduct(@ModelAttribute ProductRequestDto productRequestDto) {
 
         String loginId = ((CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getLoginId();
         //   System.out.println("Principal Type: " + principal.getClass().getName());
@@ -67,7 +68,7 @@ public class ProductController {
      상품 수정
      */
     @PatchMapping("/{id}")
-    public ResponseEntity<SuccessResponse>productUpdate(@PathVariable Long id, @RequestBody ProductRequestDto dto){
+    public ResponseEntity<SuccessResponse>productUpdate(@PathVariable Long id, @ModelAttribute ProductRequestDto dto){
         String loginId = ((CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getLoginId();
         if (loginId == null || loginId.trim().isEmpty()) {
 
