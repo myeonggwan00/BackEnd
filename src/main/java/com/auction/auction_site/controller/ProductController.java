@@ -68,7 +68,7 @@ public class ProductController {
      상품 수정
      */
     @PatchMapping("/{id}")
-    public ResponseEntity<SuccessResponse>productUpdate(@PathVariable Long id, @RequestBody ProductRequestDto dto){
+    public ResponseEntity<SuccessResponse>productUpdate(@PathVariable Long id, @ModelAttribute ProductRequestDto dto){
         String loginId = ((CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getLoginId();
         if (loginId == null || loginId.trim().isEmpty()) {
 

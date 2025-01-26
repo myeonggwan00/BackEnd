@@ -149,7 +149,9 @@ public class ProductService {
                 .id(product.getId()).productName(product.getProductName()).productDetail(product.getProductDetail())
                 .startPrice(product.getStartPrice()).bidStep(product.getBidStep()).auctionEndDate(product.getAuctionEndDate())
                 .createdAt(product.getCreatedAt()).updatedAt(product.getUpdatedAt()).viewCount(product.getViewCount())
-                .productStatus(product.getProductStatus()).build();
+                .productStatus(product.getProductStatus()).imageUrls(product.getImages().stream()
+                        .map(Image::getImageUrl)
+                        .collect(Collectors.toList())).build();
     }
 
     /**
@@ -203,6 +205,34 @@ public class ProductService {
             product.setAuctionEndDate(dto.getAuctionEndDate());
         }
 
+        List<Image> currentImages = product.getImages();
+        List<Image> newImages = new ArrayList<>();
+        List<String> imageUrls = new ArrayList<>();
+        if (dto.getProductImage() != null && !dto.getProductImage().isEmpty()) {
+
+            for (MultipartFile file : dto.getProductImage()) {
+                try {
+                    String imageUrl = saveImage(file); // 이미지 저장 경로
+                    imageUrls.add(imageUrl);
+
+                    Image image = Image.builder()
+                            .imageUrl(imageUrl)
+                            .originFileName(file.getOriginalFilename())
+                            .filePath(uploadDir + "/" + file.getOriginalFilename())
+                            .product(product)
+                            .build();
+                    newImages.add(image);
+                } catch (IOException e) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(new ErrorResponse("FAIL", "Internal Error", "상품 이미지 저장 중 오류 발생: " + e.getMessage()));
+                }
+            }
+        }
+        currentImages.clear();
+        for(Image image : newImages){
+            currentImages.add(image);
+        }
+        product.setImages(currentImages);
         Product updatedProduct = productRepository.save(product);
 
         ProductResponseDto responseDto = ProductResponseDto.builder()
@@ -216,6 +246,7 @@ public class ProductService {
                 .updatedAt(updatedProduct.getUpdatedAt())
                 .viewCount(updatedProduct.getViewCount())
                 .productStatus(updatedProduct.getProductStatus())
+                .imageUrls(imageUrls)
                 .build();
 
         return ResponseEntity.ok(responseDto);
