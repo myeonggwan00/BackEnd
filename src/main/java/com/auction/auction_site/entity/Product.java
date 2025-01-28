@@ -36,7 +36,6 @@ public class Product {
     private LocalDateTime auctionEndDate;
     @Builder.Default
     private Boolean productStatus = true;
-
     @CreatedDate
     @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
@@ -45,6 +44,11 @@ public class Product {
     private LocalDateTime updatedAt;
     private int viewCount;
 
+  // @Column(nullable = false)
+    private String thumbnailPath;
+
+    @Column(nullable = false)
+    private String thumbnailUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID", nullable = false)

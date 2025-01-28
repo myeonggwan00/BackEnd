@@ -26,6 +26,7 @@ public class ProductResponseDto {
     Boolean productStatus;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
-     List<String> imageUrls;
-        int viewCount;
+    List<String> imageUrls;
+     String thumbnailUrl;
+     int viewCount;
 }

@@ -9,7 +9,7 @@ import com.auction.auction_site.entity.Product;
 import com.auction.auction_site.repository.ImageRepository;
 import com.auction.auction_site.repository.MemberRepository;
 import com.auction.auction_site.repository.ProductRepository;
-import lombok.Value;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,67 +30,68 @@ public class ProductService {
 
     @Autowired
     private ProductRepository productRepository;
+
     @Autowired
     private MemberRepository memberRepository;
+
     @Autowired
     private ImageRepository imageRepository;
 
-  //  @Value("${file.upload-dir}")
-    private String uploadDir = "/Users/kimdayeong/intelij/teambackproject/BackEnd/uploads"; // 추후수정
-
+    private String uploadDir = "/Users/kimdayeong/intelij/teambackproject/BackEnd/uploads"; // 추후 수정
 
     /**
      * 상품 조회
      */
+    public List<ProductResponseDto> getProductsSorted(String sortBy) {
+        List<Product> products;
 
-        public List<ProductResponseDto> getProductsSorted(String sortBy) {
-            List<Product> products;
-
-            // 정렬 기준에 따라 Product 리스트 조회
-            if ("auctionEndDate".equals(sortBy)) {
-                products = productRepository.findAllByAuctionEndDate();
-            } else if ("viewCount".equals(sortBy)) {
-                products = productRepository.findAllByViewCount();
-            } else if ("createdAt".equals(sortBy)) {
-                products = productRepository.findAllByCreatedAt();
-            } else {
-                throw new IllegalArgumentException("Invalid sortBy parameter");
-            }
-
-            // Product 리스트를 ProductResponseDto 리스트로 변환
-            return products.stream()
-                    .map(this::convertToResponseDto) // 변환 메서드 호출
-                    .toList();
+        // 정렬 기준에 따라 Product 리스트 조회
+        if ("auctionEndDate".equals(sortBy)) {
+            products = productRepository.findAllByAuctionEndDate();
+        } else if ("viewCount".equals(sortBy)) {
+            products = productRepository.findAllByViewCount();
+        } else if ("createdAt".equals(sortBy)) {
+            products = productRepository.findAllByCreatedAt();
+        } else {
+            throw new IllegalArgumentException("Invalid sortBy parameter");
         }
 
-        // Product -> ProductResponseDto 변환 메서드
-        private ProductResponseDto convertToResponseDto(Product product) {
-            return new ProductResponseDto(
-                    product.getId(),
-                    product.getProductName(),
-                    product.getProductDetail(),
-                    product.getStartPrice(),
-                    product.getBidStep(),
-                    product.getAuctionEndDate(),
-                    product.getProductStatus(),
-                    product.getCreatedAt(),
-                    product.getUpdatedAt(),
-                    product.getImageUrls(), // Product 엔티티에 이미지 URL 리스트가 있어야 함
-                    product.getViewCount()
-            );
-        }
+        // Product 리스트를 ProductResponseDto 리스트로 변환
+        return products.stream()
+                .map(this::convertToResponseDto) // 변환 메서드 호출
+                .toList();
     }
+
+    // Product -> ProductResponseDto 변환 메서드
+    private ProductResponseDto convertToResponseDto(Product product) {
+        return new ProductResponseDto(
+                product.getId(),
+                product.getProductName(),
+                product.getProductDetail(),
+                product.getStartPrice(),
+                product.getBidStep(),
+                product.getAuctionEndDate(),
+                product.getProductStatus(),
+                product.getCreatedAt(),
+                product.getUpdatedAt(),
+                product.getImages().stream() // 이미지 URL 리스트 설정
+                        .map(Image::getImageUrl)
+                        .collect(Collectors.toList()),
+                product.getThumbnailUrl(), // 썸네일 URL 설정
+                product.getViewCount() // 조회수 설정
+        );
+    }
+
 
     /**
      * 상품 등록
      */
-    public ProductResponseDto createProduct(ProductRequestDto dto, String loginId){
 
-
+    public ProductResponseDto createProduct(ProductRequestDto dto, String loginId) {
         Member member = memberRepository.findByLoginId(loginId);
         // 유저를 찾을 수 없는 경우
         if (member == null) {
-            throw new  IllegalStateException("유효하지 않은 인증 정보입니다.");
+            throw new IllegalStateException("유효하지 않은 인증 정보입니다.");
         }
 
         List<Image> images = new ArrayList<>();
@@ -115,29 +116,40 @@ public class ProductService {
             }
         }
 
+        // 썸네일 이미지 저장
+        String thumbnailUrl = null;
+        if (dto.getThumnailImage() != null && !dto.getThumnailImage().isEmpty()) {
+            try {
+                thumbnailUrl = saveImage(dto.getThumnailImage()); // 저장된 썸네일 경로
+            } catch (IOException e) {
+                throw new RuntimeException("썸네일 이미지 저장에 실패했습니다.", e);
+            }
+        }
         Product product = Product.builder()
                 .productName(dto.getProductName()).productDetail(dto.getProductDetail()).startPrice(dto.getStartPrice())
-                .bidStep(dto.getBidStep()).auctionEndDate(dto.getAuctionEndDate()).member(member).viewCount(0)
+                .bidStep(dto.getBidStep()).auctionEndDate(dto.getAuctionEndDate()).member(member).viewCount(0).images(images)
+                .thumbnailUrl(thumbnailUrl)
                 .build();
-        Product savedProduct = productRepository.save(product);
+
 
         // images 리스트 초기화 if needed
         if (product.getImages() == null) {
             product.setImages(new ArrayList<>());
         }
-
+        //이미지와 상품 연결
         for (Image image : images) {
-            product.addImage(image);
+            image.setProduct(product);      // Image 엔티티와 Product 연결
         }
+        product.setImages(images); // 한 번에 연결
 
         imageRepository.saveAll(images);
-
+        Product savedProduct = productRepository.save(product);
 
         return ProductResponseDto.builder()
                 .id(savedProduct.getId()).productName(savedProduct.getProductName()).productDetail(savedProduct.getProductDetail())
                 .startPrice(savedProduct.getStartPrice()).bidStep(savedProduct.getBidStep()).auctionEndDate(savedProduct.getAuctionEndDate())
                 .createdAt(savedProduct.getCreatedAt()).updatedAt(savedProduct.getUpdatedAt()).viewCount(savedProduct.getViewCount())
-                .productStatus(savedProduct.getProductStatus()).imageUrls(imageUrls).build();
+                .productStatus(savedProduct.getProductStatus()).imageUrls(imageUrls).thumbnailUrl(thumbnailUrl).build();
     }
 
     /**
@@ -155,19 +167,17 @@ public class ProductService {
             throw new IOException("Directory does not have write permissions");
         }
 
-        String filePath = uploadDir +"/"+ newFileName;
+        String filePath = uploadDir + "/" + newFileName;
         file.transferTo(new File(filePath));
 
         return filePath;
     }
 
-
-
     /**
      * 상품 상세 조회
      */
     public ProductResponseDto productDetail(Long id) {
-        Product product = productRepository.findById(id).orElseThrow(()->new BadCredentialsException("상품 정보를 찾을 수 없습니다."));
+        Product product = productRepository.findById(id).orElseThrow(() -> new BadCredentialsException("상품 정보를 찾을 수 없습니다."));
         return ProductResponseDto.builder()
                 .id(product.getId()).productName(product.getProductName()).productDetail(product.getProductDetail())
                 .startPrice(product.getStartPrice()).bidStep(product.getBidStep()).auctionEndDate(product.getAuctionEndDate())
@@ -180,7 +190,7 @@ public class ProductService {
     /**
      * 상품 수정
      */
-    public ResponseEntity<?> productUpdate(Long id, String loginId, ProductRequestDto dto){
+    public ResponseEntity<?> productUpdate(Long id, String loginId, ProductRequestDto dto) {
         ErrorResponse errorResponse = new ErrorResponse();
         Member member = memberRepository.findByLoginId(loginId);
         // 유저를 찾을 수 없는 경우
@@ -209,7 +219,6 @@ public class ProductService {
             errorResponse.setCode("FORBIDDEN");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
         }
-
 
         // 수정할 데이터 부분만 업데이트
         if (dto.getProductName() != null) {
@@ -252,7 +261,7 @@ public class ProductService {
             }
         }
         currentImages.clear();
-        for(Image image : newImages){
+        for (Image image : newImages) {
             currentImages.add(image);
         }
         product.setImages(currentImages);
@@ -307,7 +316,6 @@ public class ProductService {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
 
-
         // 상품 삭제
         productRepository.delete(product);
         errorResponse.setStatus("SUCCESS");
@@ -316,6 +324,4 @@ public class ProductService {
         // 성공 응답 반환
         return ResponseEntity.ok().body(errorResponse);
     }
-
-
 }
