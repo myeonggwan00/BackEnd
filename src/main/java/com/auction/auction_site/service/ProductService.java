@@ -36,12 +36,56 @@ public class ProductService {
     private ImageRepository imageRepository;
 
   //  @Value("${file.upload-dir}")
-    private String uploadDir = "/Users/kimdayeong/intelij/teambackproject/BackEnd/uploads";
+    private String uploadDir = "/Users/kimdayeong/intelij/teambackproject/BackEnd/uploads"; // 추후수정
+
+
+    /**
+     * 상품 조회
+     */
+
+        public List<ProductResponseDto> getProductsSorted(String sortBy) {
+            List<Product> products;
+
+            // 정렬 기준에 따라 Product 리스트 조회
+            if ("auctionEndDate".equals(sortBy)) {
+                products = productRepository.findAllByAuctionEndDate();
+            } else if ("viewCount".equals(sortBy)) {
+                products = productRepository.findAllByViewCount();
+            } else if ("createdAt".equals(sortBy)) {
+                products = productRepository.findAllByCreatedAt();
+            } else {
+                throw new IllegalArgumentException("Invalid sortBy parameter");
+            }
+
+            // Product 리스트를 ProductResponseDto 리스트로 변환
+            return products.stream()
+                    .map(this::convertToResponseDto) // 변환 메서드 호출
+                    .toList();
+        }
+
+        // Product -> ProductResponseDto 변환 메서드
+        private ProductResponseDto convertToResponseDto(Product product) {
+            return new ProductResponseDto(
+                    product.getId(),
+                    product.getProductName(),
+                    product.getProductDetail(),
+                    product.getStartPrice(),
+                    product.getBidStep(),
+                    product.getAuctionEndDate(),
+                    product.getProductStatus(),
+                    product.getCreatedAt(),
+                    product.getUpdatedAt(),
+                    product.getImageUrls(), // Product 엔티티에 이미지 URL 리스트가 있어야 함
+                    product.getViewCount()
+            );
+        }
+    }
 
     /**
      * 상품 등록
      */
     public ProductResponseDto createProduct(ProductRequestDto dto, String loginId){
+
 
         Member member = memberRepository.findByLoginId(loginId);
         // 유저를 찾을 수 없는 경우
@@ -118,30 +162,9 @@ public class ProductService {
     }
 
 
-    /**
-     * 전체 상품 리스트
-     */
-    public List<ProductResponseDto> productList() {
-        return productRepository.findAll().stream()
-                .map(product -> new ProductResponseDto(
-                        product.getId(),
-                        product.getProductName(),
-                        product.getProductDetail(),
-                        product.getStartPrice(),
-                        product.getBidStep(),
-                        product.getAuctionEndDate(),
-                        product.getProductStatus(),
-                        product.getCreatedAt(),
-                        product.getUpdatedAt(),
-                        product.getImages().stream()
-                                .map(Image::getImageUrl) // Image 객체에서 URL 추출
-                                .collect(Collectors.toList()),
-                        product.getViewCount()
-                )).collect(Collectors.toList());
-    }
 
     /**
-     * 상품 상세
+     * 상품 상세 조회
      */
     public ProductResponseDto productDetail(Long id) {
         Product product = productRepository.findById(id).orElseThrow(()->new BadCredentialsException("상품 정보를 찾을 수 없습니다."));

@@ -4,6 +4,7 @@ import com.auction.auction_site.dto.ErrorResponse;
 import com.auction.auction_site.dto.SuccessResponse;
 import com.auction.auction_site.dto.product.ProductRequestDto;
 import com.auction.auction_site.dto.product.ProductResponseDto;
+import com.auction.auction_site.entity.Product;
 import com.auction.auction_site.security.oauth.CustomOAuth2User;
 import com.auction.auction_site.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -45,13 +46,14 @@ public class ProductController {
 
     }
     /**
-     * 전체 상품 상세보기
+     * 전체 상품 리스트 (기본 정렬 최신순)
      */
 
     @GetMapping
-    public List<ProductResponseDto> ProductList(){
-        return productService.productList();
+    public List<Product> getProducts(@RequestParam(value = "sortBy", required = false) String sortBy) {
+        return productService.getProductsSorted(sortBy);
     }
+
 
 
     /**
