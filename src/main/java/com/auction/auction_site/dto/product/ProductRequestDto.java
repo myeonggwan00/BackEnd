@@ -20,4 +20,5 @@ public class ProductRequestDto {
     private Long bidStep;
     private LocalDateTime auctionEndDate;
     private List<MultipartFile> productImage;
+    private MultipartFile thumnailImage;
 }

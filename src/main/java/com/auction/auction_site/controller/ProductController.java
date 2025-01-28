@@ -4,6 +4,7 @@ import com.auction.auction_site.dto.ErrorResponse;
 import com.auction.auction_site.dto.SuccessResponse;
 import com.auction.auction_site.dto.product.ProductRequestDto;
 import com.auction.auction_site.dto.product.ProductResponseDto;
+import com.auction.auction_site.entity.Product;
 import com.auction.auction_site.security.oauth.CustomOAuth2User;
 import com.auction.auction_site.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -45,19 +46,27 @@ public class ProductController {
 
     }
     /**
-     * 전체 상품 상세보기
+     * 전체 상품 리스트 (기본 정렬 최신순)
      */
 
     @GetMapping
-    public List<ProductResponseDto> ProductList(){
-        return productService.productList();
+    public List<ProductResponseDto> getSortedProducts(@RequestParam(required = false, defaultValue = "createdAt") String sortBy) {
+        return productService.getProductsSorted(sortBy);
+    }
+
+    /**
+     * 정렬된 상품 리스트 (명시적 경로)
+     */
+    @GetMapping("/sort")
+    public List<ProductResponseDto> getSortedProductsfilter(@RequestParam(required = false, defaultValue = "createdAt") String sortBy) {
+        return productService.getProductsSorted(sortBy);
     }
 
 
     /**
      * 특정 상품 상세보기
      */
-    @GetMapping("/{id}")
+    @GetMapping("/detail/{id}")
     public ResponseEntity<ProductResponseDto>ProductDetail(@PathVariable Long id){
 
         ProductResponseDto productDetail = productService.productDetail(id);
