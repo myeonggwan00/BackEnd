@@ -50,16 +50,16 @@ public class ProductController {
      */
 
     @GetMapping
-    public List<ProductResponseDto> getSortedProducts(@RequestParam(required = false, defaultValue = "createdAt") String sortBy) {
-        return productService.getProductsSorted(sortBy);
+    public List<ProductResponseDto> getSortedProducts(@RequestParam(required = false, defaultValue = "createdAt") String sortBy,int page, int size) {
+        return productService.getProductsSorted(sortBy, page, size);
     }
 
     /**
      * 정렬된 상품 리스트 (명시적 경로)
      */
     @GetMapping("/sort")
-    public List<ProductResponseDto> getSortedProductsfilter(@RequestParam(required = false, defaultValue = "createdAt") String sortBy) {
-        return productService.getProductsSorted(sortBy);
+    public List<ProductResponseDto> getSortedProductsfilter(@RequestParam(required = false, defaultValue = "createdAt") String sortBy, int page, int size) {
+        return productService.getProductsSorted(sortBy, page, size);
     }
 
 
