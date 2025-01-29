@@ -1,6 +1,8 @@
 package com.auction.auction_site.repository;
 
 import com.auction.auction_site.entity.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,14 +16,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findProductsByMemberId(@Param("memberId") Long memberId);
 
     // 기본 정렬 메서드
-    @Query("SELECT p FROM Product p ORDER BY p.auctionEndDate ASC")
-    List<Product> findAllByAuctionEndDate();
-
-    @Query("SELECT p FROM Product p ORDER BY p.viewCount DESC")
-    List<Product> findAllByViewCount();
-
-    @Query("SELECT p FROM Product p ORDER BY p.createdAt DESC")
-    List<Product> findAllByCreatedAt();
+    Page<Product> findAllByOrderByAuctionEndDateAsc(Pageable pageable);
+    Page<Product> findAllByOrderByViewCountDesc(Pageable pageable);
+    Page<Product> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
 }
 

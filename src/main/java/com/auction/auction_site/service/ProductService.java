@@ -11,6 +11,9 @@ import com.auction.auction_site.repository.MemberRepository;
 import com.auction.auction_site.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -42,24 +45,26 @@ public class ProductService {
     /**
      * 상품 조회
      */
-    public List<ProductResponseDto> getProductsSorted(String sortBy) {
-        List<Product> products;
+    public List<ProductResponseDto> getProductsSorted(String sortBy,  int page, int size) {
 
-        // 정렬 기준에 따라 Product 리스트 조회
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> productPage;
+
+        // 정렬 기준에 따라 페이징된 Product 리스트 조회
         if ("auctionEndDate".equals(sortBy)) {
-            products = productRepository.findAllByAuctionEndDate();
+            productPage = productRepository.findAllByOrderByAuctionEndDateAsc(pageable);
         } else if ("viewCount".equals(sortBy)) {
-            products = productRepository.findAllByViewCount();
+            productPage = productRepository.findAllByOrderByViewCountDesc(pageable);
         } else if ("createdAt".equals(sortBy)) {
-            products = productRepository.findAllByCreatedAt();
+            productPage = productRepository.findAllByOrderByCreatedAtDesc(pageable);
         } else {
             throw new IllegalArgumentException("Invalid sortBy parameter");
         }
 
-        // Product 리스트를 ProductResponseDto 리스트로 변환
-        return products.stream()
-                .map(this::convertToResponseDto) // 변환 메서드 호출
-                .toList();
+        // Product 리스트를 ProductResponseDto 리스트로 변환하여 반환
+        return productPage.getContent().stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
     }
 
     // Product -> ProductResponseDto 변환 메서드
