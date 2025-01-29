@@ -237,6 +237,16 @@ public class ProductService {
             product.setAuctionEndDate(dto.getAuctionEndDate());
         }
 
+        String thumbnailUrl = null;
+        if (dto.getThumnailImage() != null && !dto.getThumnailImage().isEmpty()) {
+            try {
+                thumbnailUrl = saveImage(dto.getThumnailImage()); // 저장된 썸네일 경로
+                product.setThumbnailUrl(thumbnailUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("썸네일 이미지 저장에 실패했습니다.", e);
+            }
+        }
+
         List<Image> currentImages = product.getImages();
         List<Image> newImages = new ArrayList<>();
         List<String> imageUrls = new ArrayList<>();
@@ -265,6 +275,7 @@ public class ProductService {
             currentImages.add(image);
         }
         product.setImages(currentImages);
+
         Product updatedProduct = productRepository.save(product);
 
         ProductResponseDto responseDto = ProductResponseDto.builder()
@@ -278,6 +289,7 @@ public class ProductService {
                 .updatedAt(updatedProduct.getUpdatedAt())
                 .viewCount(updatedProduct.getViewCount())
                 .productStatus(updatedProduct.getProductStatus())
+                .thumbnailUrl(updatedProduct.getThumbnailUrl())
                 .imageUrls(imageUrls)
                 .build();
 
