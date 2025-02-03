@@ -3,7 +3,7 @@ package com.auction.auction_site.security.spring_security;
 import com.auction.auction_site.dto.member.LoginMemberDto;
 import com.auction.auction_site.dto.member.MemberResponseDto;
 import com.auction.auction_site.entity.RefreshToken;
-import com.auction.auction_site.entity.Role;
+import com.auction.auction_site.repository.MemberRepository;
 import com.auction.auction_site.repository.RefreshTokenRepository;
 import com.auction.auction_site.security.jwt.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +32,7 @@ import static com.auction.auction_site.utils.ConstantConfig.*;
 public class CustomJsonLoginFilter extends AbstractAuthenticationProcessingFilter {
     private final JWTUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final MemberRepository memberRepository;
 
     // 해당 필터가 적용되는 요청
     private static final String DEFAULT_LOGIN_REQUEST_URL = "/login";
@@ -45,12 +46,13 @@ public class CustomJsonLoginFilter extends AbstractAuthenticationProcessingFilte
     private final ObjectMapper objectMapper;
 
     public CustomJsonLoginFilter(AuthenticationManager authenticationManager, ObjectMapper objectMapper,
-                                 JWTUtil jwtUtil, RefreshTokenRepository refreshTokenRepository) {
+                                 JWTUtil jwtUtil, RefreshTokenRepository refreshTokenRepository, MemberRepository memberRepository) {
         super(DEFAULT_LOGIN_PATH_REQUEST_MATCHER);
         this.setAuthenticationManager(authenticationManager);
         this.objectMapper = objectMapper;
         this.jwtUtil = jwtUtil;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.memberRepository = memberRepository;
     }
 
     // 로그인 요청이 들어올 때 실행되는 메서드
@@ -90,12 +92,7 @@ public class CustomJsonLoginFilter extends AbstractAuthenticationProcessingFilte
         String loginId = userDetails.getUsername(); // 회원 로그인 아이디
         String role = authentication.getAuthorities().iterator().next().getAuthority(); // 회원 권한
 
-        MemberResponseDto memberResponseDto = MemberResponseDto.builder()
-                .loginId(loginId)
-                .email(userDetails.getEmail())
-                .role(Role.valueOf(role))
-                .nickname(userDetails.getNickname())
-                .build();
+        MemberResponseDto memberResponseDto = MemberResponseDto.from(memberRepository.findByLoginId(loginId));
 
         // JWT 토큰(access, refresh) 생성
         String accessToken = jwtUtil.createJwt("access", loginId, role, ACCESS_EXPIRED_MS);
@@ -108,7 +105,6 @@ public class CustomJsonLoginFilter extends AbstractAuthenticationProcessingFilte
                 .build();
 
         refreshTokenRepository.save(refreshTokenEntity);
-
 
         response.addHeader("Authorization", "Bearer " + accessToken);
         response.addCookie(createCookie(refreshToken));

@@ -1,8 +1,11 @@
 package com.auction.auction_site.dto.member;
 
+import com.auction.auction_site.dto.product.ProductDto;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter @Setter
@@ -11,37 +14,18 @@ public class MemberDetailsDto {
 
     private String nickname;
 
-    private List<ProductStatusDto> products;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate registerDate;
 
-    public MemberDetailsDto(String loginId, String nickname, List<ProductStatusDto> products) {
+    private Object bidingProducts;
+
+    private Object soldProducts;
+
+    public MemberDetailsDto(String loginId, String nickname, LocalDate registerDate, List<ProductDto> bidingProducts, List<ProductDto> soldProducts) {
         this.loginId = loginId;
         this.nickname = nickname;
-        this.products = products;
-    }
-
-    // getters and setters
-
-    @Getter @Setter
-    public static class ProductStatusDto {
-        private boolean status;
-        private List<ProductDto> products;
-
-        public ProductStatusDto(boolean status, List<ProductDto> products) {
-            this.status = status;
-            this.products = products;
-        }
-    }
-
-    @Getter @Setter
-    public static class ProductDto {
-        private Long id;
-        private String productName;
-        private String productDetail;
-
-        public ProductDto(Long id, String productName, String productDetail) {
-            this.id = id;
-            this.productName = productName;
-            this.productDetail = productDetail;
-        }
+        this.registerDate = registerDate;
+        this.bidingProducts = bidingProducts;
+        this.soldProducts = soldProducts;
     }
 }

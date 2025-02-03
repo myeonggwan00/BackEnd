@@ -3,13 +3,10 @@ package com.auction.auction_site.service;
 import com.auction.auction_site.dto.ErrorResponse;
 import com.auction.auction_site.dto.product.ProductRequestDto;
 import com.auction.auction_site.dto.product.ProductResponseDto;
-import com.auction.auction_site.entity.Image;
-import com.auction.auction_site.entity.Member;
-import com.auction.auction_site.entity.Product;
+import com.auction.auction_site.entity.*;
 import com.auction.auction_site.repository.ImageRepository;
 import com.auction.auction_site.repository.MemberRepository;
 import com.auction.auction_site.repository.ProductRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +37,6 @@ public class ProductService {
 
     @Autowired
     private ImageRepository imageRepository;
-
     private String uploadDir = "/Users/kimdayeong/intelij/teambackproject/BackEnd/uploads"; // 추후 수정
 
     /**
@@ -48,7 +45,7 @@ public class ProductService {
     public List<ProductResponseDto> getProductsSorted(String sortBy,  int page, int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<Product> productPage;
+        Page<Product> productPage = null;
 
         // 정렬 기준에 따라 페이징된 Product 리스트 조회
         if ("auctionEndDate".equals(sortBy)) {
@@ -57,6 +54,8 @@ public class ProductService {
             productPage = productRepository.findAllByOrderByViewCountDesc(pageable);
         } else if ("createdAt".equals(sortBy)) {
             productPage = productRepository.findAllByOrderByCreatedAtDesc(pageable);
+        } else if ("auctionParticipantCount".equals(sortBy)) {
+            productPage = productRepository.findAllByOrderedByParticipants(pageable);
         } else {
             throw new IllegalArgumentException("Invalid sortBy parameter");
         }
@@ -83,7 +82,9 @@ public class ProductService {
                         .map(Image::getImageUrl)
                         .collect(Collectors.toList()),
                 product.getThumbnailUrl(), // 썸네일 URL 설정
-                product.getViewCount() // 조회수 설정
+                product.getViewCount(), // 조회수 설정
+                product.getAuction().getAuctionParticipantCount(),
+                null
         );
     }
 
@@ -132,8 +133,8 @@ public class ProductService {
         }
         Product product = Product.builder()
                 .productName(dto.getProductName()).productDetail(dto.getProductDetail()).startPrice(dto.getStartPrice())
-                .bidStep(dto.getBidStep()).auctionEndDate(dto.getAuctionEndDate()).member(member).viewCount(0).images(images)
-                .thumbnailUrl(thumbnailUrl)
+                .bidStep(dto.getBidStep()).auctionEndDate(dto.getAuctionEndDate()).member(member).viewCount(0).images(null)
+                .thumbnailUrl(null)
                 .build();
 
 
@@ -148,13 +149,25 @@ public class ProductService {
         product.setImages(images); // 한 번에 연결
 
         imageRepository.saveAll(images);
-        Product savedProduct = productRepository.save(product);
+
+
+        Auction auction = Auction.builder()
+                .auctionStatus(AuctionStatus.RUNNING.getLabel())
+                .startDate(LocalDateTime.now())
+                .endDate(dto.getAuctionEndDate())
+                .currentMaxPrice(dto.getStartPrice())
+                .product(product)
+                .build();
+
+        product.associateWithAuction(auction);
+
+        productRepository.save(product);
 
         return ProductResponseDto.builder()
-                .id(savedProduct.getId()).productName(savedProduct.getProductName()).productDetail(savedProduct.getProductDetail())
-                .startPrice(savedProduct.getStartPrice()).bidStep(savedProduct.getBidStep()).auctionEndDate(savedProduct.getAuctionEndDate())
-                .createdAt(savedProduct.getCreatedAt()).updatedAt(savedProduct.getUpdatedAt()).viewCount(savedProduct.getViewCount())
-                .productStatus(savedProduct.getProductStatus()).imageUrls(imageUrls).thumbnailUrl(thumbnailUrl).build();
+                .id(product.getId()).productName(product.getProductName()).productDetail(product.getProductDetail())
+                .startPrice(product.getStartPrice()).bidStep(product.getBidStep()).auctionEndDate(product.getAuctionEndDate())
+                .createdAt(product.getCreatedAt()).updatedAt(product.getUpdatedAt()).viewCount(product.getViewCount())
+                .productStatus(product.getProductStatus()).imageUrls(null).thumbnailUrl(null).build();
     }
 
     /**
@@ -341,4 +354,16 @@ public class ProductService {
         // 성공 응답 반환
         return ResponseEntity.ok().body(errorResponse);
     }
+
+    /**
+     * 상품 상태 확인
+     */
+    public void checkProduct(Long productId) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if(!product.getProductStatus()) {
+            throw new RuntimeException("경매가 종료된 상품입니다.");
+        }
+    }
+
 }

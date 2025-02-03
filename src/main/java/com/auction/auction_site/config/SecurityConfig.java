@@ -1,5 +1,6 @@
 package com.auction.auction_site.config;
 
+import com.auction.auction_site.repository.MemberRepository;
 import com.auction.auction_site.security.spring_security.CustomAuthenticationEntryPoint;
 import com.auction.auction_site.repository.RefreshTokenRepository;
 import com.auction.auction_site.security.jwt.JWTFilter;
@@ -36,8 +37,7 @@ public class SecurityConfig {
     private final RefreshTokenRepository refreshTokenRepository;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-
-
+    private final MemberRepository memberRepository;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -59,7 +59,7 @@ public class SecurityConfig {
         httpSecurity.csrf((auth) -> auth.disable());
 
         httpSecurity.addFilterBefore(new CustomJsonLoginFilter(
-                authenticationManager(authenticationConfiguration), objectMapper, jwtUtil, refreshTokenRepository),
+                authenticationManager(authenticationConfiguration), objectMapper, jwtUtil, refreshTokenRepository, memberRepository),
                 UsernamePasswordAuthenticationFilter.class);
 
         httpSecurity.addFilterAfter(new JWTFilter(jwtUtil), CustomJsonLoginFilter.class);
@@ -77,8 +77,8 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(
                 (auth) -> auth
                         .requestMatchers("/", "/oauth2/**", "/login/**", "/members",
-                                "/members/email-verification", "/email-verification"
-                                , "/members/id", "members/nickname", "/reissue","/pwdhelp/**").permitAll()
+                                "/members/email-verification", "/email-verification",
+                                "/members/id", "members/nickname", "/reissue","/pwdhelp/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated()
         );
