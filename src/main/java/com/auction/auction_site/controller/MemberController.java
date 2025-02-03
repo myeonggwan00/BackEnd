@@ -25,15 +25,24 @@ public class MemberController {
 
     /**
      * 회원 정보 조회
+     * *
+     * 1. progress
+     * - true: 입찰한 상품 중에서 경매가 진행 중인 것만 보여주기
+     * - false: 기본값, 입찰한 전체 상품 보여주기
+     * *
+     * 2. completed
+     * - true: 판매한 상품 중에서 경매가 완료된 것만 보여주기
+     * - false: 기본값, 판매한 상품 전체 보여주기
      */
-    @GetMapping("/me")
-    public ResponseEntity<SuccessResponse> getDetails(@RequestHeader("Authorization") String authorization) {
-        String token = authorization.split(" ")[1];
-        MemberDetailsDto memberDetails = memberService.getMemberDetails(token);
-        return ResponseEntity.ok().body(SuccessResponse.success("회웑 정보 조회 완료", memberDetails));
+    @GetMapping("/my-page")
+    public ResponseEntity<SuccessResponse> getDetails(@RequestParam(defaultValue = "false") boolean progressOnly,
+                                                      @RequestParam(defaultValue = "false") boolean completedOnly,
+                                                      @RequestHeader("Authorization") String authorization) {
+        MemberDetailsDto memberDetails = memberService.getMemberDetails(authorization, progressOnly, completedOnly);
+        return ResponseEntity.ok().body(SuccessResponse.success("회원 정보 조회 완료", memberDetails));
     }
 
-    @GetMapping("/id")
+    @GetMapping("/id/availability")
     public ResponseEntity<?> checkId(@RequestParam("value") String loginId) {
         if(memberService.checkLoginId(loginId)) {
             return ResponseEntity
@@ -44,7 +53,7 @@ public class MemberController {
         return ResponseEntity.ok().body(SuccessResponse.success("사용 가능한 아이디입니다.", null));
     }
 
-    @GetMapping("/nickname")
+    @GetMapping("/nickname/availability")
     public ResponseEntity<?> checkNickname(@RequestParam("value") String nickname) {
         if(memberService.checkNickname(nickname)) {
             return ResponseEntity
@@ -55,7 +64,7 @@ public class MemberController {
         return ResponseEntity.ok().body(SuccessResponse.success("사용 가능한 닉네임 입니다.", null));
     }
 
-    @PostMapping("/email-verification")
+    @PostMapping("/email/verification")
     public ResponseEntity<?> sendEmailVerification(@RequestBody MailDto mailDto) {
         System.out.println("email = " + mailDto.getEmail());
         String token = memberService.createToken(mailDto.getEmail());
@@ -66,7 +75,7 @@ public class MemberController {
                 .body(SuccessResponse.success("이메일 인증 링크 전송 완료", null));
     }
 
-    @GetMapping("/email-verification")
+    @GetMapping("/email/verification")
     public ResponseEntity<?> checkEmailVerification(@RequestParam String token) {
 
         boolean checkEmail = memberService.checkEmail(token);
@@ -98,7 +107,7 @@ public class MemberController {
     /**
      * 회원 수정
      */
-    @PatchMapping("/me")
+    @PatchMapping
     public ResponseEntity<SuccessResponse> modify(@RequestBody UpdateMemberDto updateMemberDto, @RequestHeader("Authorization") String authorization) {
         String token = authorization.split(" ")[1];
         MemberResponseDto memberResponseDto = memberService.updateMember(updateMemberDto, token);
@@ -111,7 +120,7 @@ public class MemberController {
     /**
      * 회원 삭제
      */
-    @DeleteMapping("/me")
+    @DeleteMapping
     public ResponseEntity<SuccessResponse> delete(@RequestHeader("Authorization") String authorization, HttpServletResponse response) {
         String token = authorization.split(" ")[1];
 

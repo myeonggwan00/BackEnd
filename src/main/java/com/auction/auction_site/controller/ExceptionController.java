@@ -1,10 +1,7 @@
 package com.auction.auction_site.controller;
 
-import com.auction.auction_site.exception.EmailSendException;
-import com.auction.auction_site.exception.EntityNotFound;
+import com.auction.auction_site.exception.*;
 import com.auction.auction_site.dto.ErrorResponse;
-import com.auction.auction_site.exception.ExpiredTokenException;
-import com.auction.auction_site.exception.InvalidTokenException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,5 +51,30 @@ public class ExceptionController { // 예외 처리용 컨트롤러
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("fail", "BAD_REQUEST", "메일 전송에 실패했습니다."));
+    }
+
+    @ExceptionHandler(AlreadyParticipatedException.class)
+    public ResponseEntity<ErrorResponse> handleAlreadyParticipatedException(AlreadyParticipatedException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("fail", "BAD_REQUEST", e.getMessage()));
+    }
+
+    @ExceptionHandler(AuctionFinishedException.class)
+    public ResponseEntity<ErrorResponse> handleAuctionFinishedException(AuctionFinishedException e) {
+        ErrorResponse errorResponse = null;
+        String message = e.getMessage();
+
+        if(message.contains("참여")) {
+            errorResponse = new ErrorResponse("fail", "BAD_REQUEST", e.getMessage());
+        } else if(message.contains("입찰")) {
+            errorResponse = new ErrorResponse("fail", "BAD_REQUEST", e.getMessage());
+        } else if(message.contains("취소")) {
+            errorResponse = new ErrorResponse("fail", "BAD_REQUEST", e.getMessage());
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
     }
 }
