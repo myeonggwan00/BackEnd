@@ -11,8 +11,12 @@ import java.util.List;
 @AllArgsConstructor
 public class AuctionDetailsDto {
     private int auctionParticipants;
+
     private String remainingAuctionTime;
+
     private List<ResponseBidDto> bids;
+
     private String auctionParticipantStatus;
+
     private String auctionStatus;
 }
