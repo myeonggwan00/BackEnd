@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
@@ -32,9 +31,9 @@ public class Bid {
 
     private Long bidAmount;
 
-    @DateTimeFormat(pattern = "yy-MM-dd HH:mm:ss")
     private LocalDateTime bidDate;
 
+    // 입찰 정보 추가
     public static Bid addBid(Auction auction, AuctionParticipant auctionParticipant, Long amount) {
         Bid bid = Bid.builder()
                 .auction(auction)
@@ -48,6 +47,7 @@ public class Bid {
         return bid;
     }
 
+    // Bid → ResponseBidDto
     public ResponseBidDto fromBid() {
         return new ResponseBidDto(this.getBidDate(), this.getBidAmount(), this.auctionParticipant.getMember().getNickname());
     }
