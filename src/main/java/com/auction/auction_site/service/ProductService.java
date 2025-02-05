@@ -95,7 +95,6 @@ public class ProductService {
 
     public ProductResponseDto createProduct(ProductRequestDto dto, String loginId) {
         Member member = memberRepository.findByLoginId(loginId);
-        // 유저를 찾을 수 없는 경우
         if (member == null) {
             throw new IllegalStateException("유효하지 않은 인증 정보입니다.");
         }
@@ -105,19 +104,17 @@ public class ProductService {
 
         for (MultipartFile file : dto.getProductImage()) {
             try {
-                String imageUrl = saveImage(file); // 저장 된 이미지 경로
+                String imageUrl = saveImage(file);
                 imageUrls.add(imageUrl);
 
-                String filePath = uploadDir + file.getOriginalFilename(); //새로운 경로 설정
+                String filePath = uploadDir + file.getOriginalFilename();
                 Image image = Image.builder()
                         .imageUrl(imageUrl)
                         .originFileName(file.getOriginalFilename())
                         .filePath(filePath)
                         .build();
                 images.add(image);
-
             } catch (IOException e) {
-                System.out.println("IOException 발생: " + e.getMessage());
                 throw new RuntimeException("이미지 저장에 실패했습니다.", e);
             }
         }
@@ -126,30 +123,27 @@ public class ProductService {
         String thumbnailUrl = null;
         if (dto.getThumnailImage() != null && !dto.getThumnailImage().isEmpty()) {
             try {
-                thumbnailUrl = saveImage(dto.getThumnailImage()); // 저장된 썸네일 경로
+                thumbnailUrl = saveImage(dto.getThumnailImage());
             } catch (IOException e) {
                 throw new RuntimeException("썸네일 이미지 저장에 실패했습니다.", e);
             }
         }
+
         Product product = Product.builder()
-                .productName(dto.getProductName()).productDetail(dto.getProductDetail()).startPrice(dto.getStartPrice())
-                .bidStep(dto.getBidStep()).auctionEndDate(dto.getAuctionEndDate()).member(member).viewCount(0).images(null)
-                .thumbnailUrl(null)
+                .productName(dto.getProductName())
+                .productDetail(dto.getProductDetail())
+                .startPrice(dto.getStartPrice())
+                .bidStep(dto.getBidStep())
+                .auctionEndDate(dto.getAuctionEndDate())
+                .member(member)
+                .viewCount(0)
+                .thumbnailUrl(thumbnailUrl)
                 .build();
 
-
-        // images 리스트 초기화 if needed
-        if (product.getImages() == null) {
-            product.setImages(new ArrayList<>());
-        }
-        //이미지와 상품 연결
         for (Image image : images) {
-            image.setProduct(product);      // Image 엔티티와 Product 연결
+            image.setProduct(product);
         }
-        product.setImages(images); // 한 번에 연결
-
-        imageRepository.saveAll(images);
-
+        product.setImages(images);
 
         Auction auction = Auction.builder()
                 .auctionStatus(AuctionStatus.RUNNING.getLabel())
@@ -158,16 +152,24 @@ public class ProductService {
                 .currentMaxPrice(dto.getStartPrice())
                 .product(product)
                 .build();
-
         product.associateWithAuction(auction);
 
         productRepository.save(product);
 
         return ProductResponseDto.builder()
-                .id(product.getId()).productName(product.getProductName()).productDetail(product.getProductDetail())
-                .startPrice(product.getStartPrice()).bidStep(product.getBidStep()).auctionEndDate(product.getAuctionEndDate())
-                .createdAt(product.getCreatedAt()).updatedAt(product.getUpdatedAt()).viewCount(product.getViewCount())
-                .productStatus(product.getProductStatus()).imageUrls(null).thumbnailUrl(null).build();
+                .id(product.getId())
+                .productName(product.getProductName())
+                .productDetail(product.getProductDetail())
+                .startPrice(product.getStartPrice())
+                .bidStep(product.getBidStep())
+                .auctionEndDate(product.getAuctionEndDate())
+                .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
+                .viewCount(product.getViewCount())
+                .productStatus(product.getProductStatus())
+                .imageUrls(imageUrls)
+                .thumbnailUrl(thumbnailUrl)
+                .build();
     }
 
     /**

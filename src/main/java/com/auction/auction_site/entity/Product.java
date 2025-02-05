@@ -42,10 +42,10 @@ public class Product {
     private LocalDateTime updatedAt;
     private int viewCount;
 
-  // @Column(nullable = false)
+    // @Column(nullable = false)
     private String thumbnailPath;
 
-    @Column(nullable = false)
+   // @Column(nullable = false)
     private String thumbnailUrl;
 
     // 상품을 저장할 때 경매도 자동 저장되도록 CascadeType.PERSIST 설정

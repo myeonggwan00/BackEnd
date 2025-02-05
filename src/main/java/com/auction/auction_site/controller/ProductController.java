@@ -27,7 +27,7 @@ public class ProductController {
      * 상품 등록
      */
     @PostMapping( consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<SuccessResponse> createProduct(@ModelAttribute ProductRequestDto productRequestDto) {
+    public ResponseEntity<?> createProduct(@ModelAttribute ProductRequestDto productRequestDto) {
 
         String loginId = ((CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getLoginId();
         //   System.out.println("Principal Type: " + principal.getClass().getName());
