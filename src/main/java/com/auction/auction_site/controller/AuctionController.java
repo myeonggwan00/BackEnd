@@ -25,7 +25,7 @@ public class AuctionController {
      * 경매 참여
      */
     @PostMapping("/participate")
-    public ResponseEntity<?> participateAuction(@PathVariable Long productId,
+    public ResponseEntity<?> participateAuction(@PathVariable("productId") Long productId,
                                                 @RequestHeader("Authorization") String authorization) {
         // 요청에서 JwtAccessToken 가져와서 회원 정보 가져오기
         Member member = memberService.getMember(authorization);
