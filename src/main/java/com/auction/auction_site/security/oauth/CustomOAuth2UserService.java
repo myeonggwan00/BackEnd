@@ -16,10 +16,12 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * 소셜 로그인 요청을 처리하고 사용자 정보를 조회/저장하며 CustomOAuth2User를 반환
- *
+ * *
  * <동작 흐름>
  * 1. 사용자가 소셜 로그인 요청
  * 2. 스프링 시큐리티가 소셜 로그인 provider에 인증 요청을 보냄
@@ -42,50 +44,40 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         log.info("oAuth2User: {}", oAuth2User.getAttributes());
 
         String registrationId= userRequest.getClientRegistration().getRegistrationId();
-        OAuth2Response oAuth2Response = null;
 
-        // 네이버, 구글, 카카오에서 보내는 인증 데이터 규격이 다르므로 각각의 응답을 처리하는 DTO 생성
-        switch (registrationId) {
-            case "naver":
-                oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
-                break;
-            case "google":
-                oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
-                break;
-            case "Kakao":
-                oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
-                break;
-            default:
-                    return null;
+        // OAuth2 응답을 처리할 매핑 정의
+        Map<String, Function<Map<String, Object>, OAuth2Response>> responseMapper = Map.of(
+                "naver", NaverResponse::new,
+                "google", GoogleResponse::new,
+                "Kakao", KakaoResponse::new
+        );
+
+        // oAuth2Response 최종적으로 한 번만 할당하도록 변경
+        OAuth2Response oAuth2Response = responseMapper.getOrDefault(registrationId, attributes -> null)
+                .apply(oAuth2User.getAttributes()); // 객체 생성하는 역할
+
+        if (oAuth2Response == null) {
+            return null; // 지원하지 않는 OAuth2 공급자
         }
 
-//        String username = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
+        MemberDto memberDto = memberRepository.findByLoginId(oAuth2Response.getEmail()).map(member -> {
+                    member.assignLoginIdFromEmail(oAuth2Response.getEmail());
+                    memberRepository.save(member);
+                    return MemberDto.fromMember(member);
+                })
+                .orElseGet(() -> {
+                    Member member = Member.builder()
+                            .loginId(oAuth2Response.getEmail())
+                            .password(oAuth2Response.getProviderId()) // 제공자 내부에서 사용자를 식별하는 고유 ID로 비밀번호로 처리
+                            .nickname(oAuth2Response.getNickname())
+                            .email(oAuth2Response.getEmail())
+                            .registerDate(LocalDate.now())
+                            .build();
 
-        Member findMember = memberRepository.findByLoginId(oAuth2Response.getEmail());
+                    memberRepository.save(member);
 
-        MemberDto memberDto = null;
-
-        // 유저 정보가 없으면 저장
-        if(findMember == null) {
-            Member member = Member.builder()
-                    .loginId(oAuth2Response.getEmail())
-                    .password(oAuth2Response.getProviderId()) // 제공자 내부에서 사용자를 식별하는 고유 ID로 비밀번호로 처리
-                    .nickname(oAuth2Response.getNickname())
-                    .email(oAuth2Response.getEmail())
-                    .registerDate(LocalDate.now())
-                    .build();
-
-            memberRepository.save(member);
-
-            memberDto = MemberDto.fromMember(member);
-
-        } else { // 유저 정보가 있으면 업데이트
-            findMember.setLoginId(oAuth2Response.getEmail());
-
-            memberRepository.save(findMember);
-
-            memberDto = MemberDto.fromMember(findMember);
-        }
+                    return MemberDto.fromMember(member);
+                });
 
         return new CustomOAuth2User(memberDto);
     }

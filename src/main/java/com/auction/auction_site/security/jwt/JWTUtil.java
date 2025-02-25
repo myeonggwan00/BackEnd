@@ -1,5 +1,7 @@
 package com.auction.auction_site.security.jwt;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -14,7 +16,7 @@ import java.util.Date;
  */
 @Component
 public class JWTUtil {
-    private SecretKey secretKey; // JWT 서명에 사용할 비밀키를 저장하는 변수
+    private final SecretKey secretKey; // JWT 서명에 사용할 비밀키를 저장하는 변수
 
     public JWTUtil(@Value("${spring.jwt.secret}")String secret) {
         secretKey = new SecretKeySpec( // SecretKeySpec 객체는 비밀키를 사용하여 JWT 서명을 위한 비밀 키 생성
@@ -40,10 +42,11 @@ public class JWTUtil {
                 .getPayload().get("role", String.class);
     }
 
-    public Boolean isExpired(String token) {
-        return Jwts.parser().verifyWith(secretKey).
-                build().parseSignedClaims(token)
-                .getPayload().getExpiration().before(new Date()); // 파싱된 JWT 페이로드에서 만료일자를 추출하여 현재 날짜와 비교
+    public void isExpired(String token) {
+        Jwts.parser().verifyWith(secretKey).build()
+                // JWT 토큰을 파싱하면서 서명된 클레임을 추출(만료 시간을 내부적을 확인하여 만료된 토큰에 대해 자동으로 ExpiredJwtException을 던짐)
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     // 새로운 JWT 토큰을 생성하는 createJwt

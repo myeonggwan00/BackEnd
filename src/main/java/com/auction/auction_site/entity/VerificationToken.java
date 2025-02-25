@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder(toBuilder = true)
 @AllArgsConstructor
+@NoArgsConstructor
 public class VerificationToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,13 +27,13 @@ public class VerificationToken {
     @Column(nullable = false)
     private LocalDateTime expirationDate;
 
+    // 토큰 갱신
     public void updateToken(String token, LocalDateTime expirationDate) {
         this.token = token;
         this.expirationDate = expirationDate;
     }
 
-    public VerificationToken() {}
-
+    // 토큰 검증
     public boolean verifyToken(String token) {
         return this.token.equals(token);
     }

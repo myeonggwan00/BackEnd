@@ -13,8 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
-import static com.auction.auction_site.utils.ConstantConfig.COOKIE_MAX_AGE;
-import static com.auction.auction_site.utils.ConstantConfig.REFRESH_EXPIRED_MS;
+import static com.auction.auction_site.config.ConstantConfig.*;
 
 /**
  * OAuth2 로그인 인증 성공시 실행되는 핸들러
@@ -36,7 +35,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         String refreshToken = jwtUtil.createJwt("refresh", loginId, role, REFRESH_EXPIRED_MS);
 
-        response.addCookie(createCookie("Authorization", refreshToken));
+        response.addCookie(createCookie(refreshToken));
 
         RefreshToken refreshTokenEntity = RefreshToken.builder()
                 .loginId(loginId)
@@ -49,11 +48,10 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 //        response.sendRedirect("http://localhost:3000/");
     }
 
-    private Cookie createCookie(String key, String value) {
+    private Cookie createCookie(String value) {
 
-        Cookie cookie = new Cookie(key, value);
+        Cookie cookie = new Cookie("Authorization", value);
         cookie.setMaxAge(COOKIE_MAX_AGE);
-//        cookie.setSecure(true); // HTTPS 통신을 진행할 경우 추가
         cookie.setPath("/"); // 쿠키가 적용될 범위
         cookie.setHttpOnly(true); // 자바스크립 공격 방지를 위해 추가
 

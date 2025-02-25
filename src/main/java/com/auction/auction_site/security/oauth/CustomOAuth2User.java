@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  * OAuth2User 인터페이스를 구현한 클래스며 소셜 로그인 사용자 정보를 담는 클래스
- *
+ * *
  * <동작 흐름>
  * 1. 소셜 로그인 성공시 OAuth2 Provider가 사용자 정보를 반환
  * 2. 반환된 정보를 CustomOAuth2User 객체에 저장

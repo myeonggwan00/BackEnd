@@ -4,6 +4,7 @@ import com.auction.auction_site.dto.ErrorResponse;
 import com.auction.auction_site.dto.SuccessResponse;
 import com.auction.auction_site.entity.Member;
 import com.auction.auction_site.entity.MemberResetToken;
+import com.auction.auction_site.exception.EntityNotFound;
 import com.auction.auction_site.repository.MemberRepository;
 import com.auction.auction_site.repository.MemberResetTokenRepository;
 import jakarta.mail.MessagingException;
@@ -43,14 +44,7 @@ public class PasswordResetService {
      *  이메일 확인
      */
     public ResponseEntity<?> findMemberByEmail(String email) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        Member member = memberRepository.findByEmail(email);
-        if (member == null) {
-            errorResponse.setStatus("FAIL");
-            errorResponse.setCode("UNAUTHORIZED");
-            errorResponse.setMessage("이메일에 해당하는 사용자를 찾을 수 없습니다.:" + email);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
-        }
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new EntityNotFound("이메일에 해당하는 사용자를 찾을 수 없습니다."));
 
         return ResponseEntity.ok(member);
     }
@@ -99,8 +93,8 @@ public class PasswordResetService {
         }
 
         // 비밀번호 변경
-        Member member = memberRepository.findByEmail(email);
-        member.setPassword(bCryptPasswordEncoder.encode(newPassword));
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new EntityNotFound("이메일에 해당하는 사용자를 찾을 수 없습니다."));
+        member.updatePassword(bCryptPasswordEncoder.encode(newPassword));
         memberRepository.save(member);
 
         //토큰 삭제

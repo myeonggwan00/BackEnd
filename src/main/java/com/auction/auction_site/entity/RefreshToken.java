@@ -7,13 +7,12 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.Date;
 
 @Entity
 @Builder
-@Getter @Setter
+@Getter
 @AllArgsConstructor
 public class RefreshToken {
     @Id

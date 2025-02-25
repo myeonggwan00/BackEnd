@@ -17,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -52,11 +53,11 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.formLogin((formLogin) -> formLogin.disable());
+        httpSecurity.formLogin(AbstractHttpConfigurer::disable);
 
-        httpSecurity.httpBasic((httpBasic) -> httpBasic.disable());
+        httpSecurity.httpBasic(AbstractHttpConfigurer::disable);
 
-        httpSecurity.csrf((auth) -> auth.disable());
+        httpSecurity.csrf(AbstractHttpConfigurer::disable);
 
         httpSecurity.addFilterBefore(new CustomJsonLoginFilter(
                 authenticationManager(authenticationConfiguration), objectMapper, jwtUtil, refreshTokenRepository, memberRepository),
@@ -77,8 +78,9 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(
                 (auth) -> auth
                         .requestMatchers("/", "/oauth2/**", "/login/**", "/members",
-                                "/members/email-verification", "/email-verification",
-                                "/members/id", "members/nickname", "/reissue","/pwdhelp/**").permitAll()
+                                "/members/id-recovery-email", "members/registration-verification-email",
+                                "/members/id-availability", "members/nickname-availability",
+                                "/reissue","/pwdhelp/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated()
         );

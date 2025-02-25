@@ -9,9 +9,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * 정상 응답 JSON, 에러 응답 JSON을 만들어주는 유틸리티 클래스
+ * 응답 JSON을 만들어주는 유틸리티 클래스
  */
 public class Utility {
+    /**
+     * 정상 응답 JSON 생성
+     */
     public static void sendSuccessJsonResponse(HttpServletResponse response, String message, Object data) throws IOException {
         String json = new ObjectMapper().registerModule(new JavaTimeModule()).writeValueAsString(SuccessResponse.success(message, data));
 
@@ -20,6 +23,9 @@ public class Utility {
         response.getWriter().write(json);
     }
 
+    /**
+     * 에러 응답 JSON 생성
+     */
     public static void sendErrorJsonResponse(HttpServletResponse response, String code, String message) throws IOException {
         String json = new ObjectMapper().registerModule(new JavaTimeModule()).writeValueAsString(ErrorResponse.error(code, message));
 

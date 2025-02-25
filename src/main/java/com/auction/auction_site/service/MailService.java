@@ -33,9 +33,11 @@ public class MailService {
         }
     }
 
-
+    /**
+     * 아이디 찾기용 메일 전송
+     */
     public void sendLoginIdRecoveryEmail(String email, String token) {
-        String link = "http://localhost:8080/email-verification?token=" + token;
+        String link = "http://localhost:8080/members/id-recovery-email?token=" + token;
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -49,8 +51,11 @@ public class MailService {
         }
     }
 
+    /**
+     * 회원 가입시 본인인증용 메일 전송
+     */
     public void sendVerificationEmail(String email, String token) {
-        String link = "http://localhost:8080/members/email-verification?token=" + token;
+        String link = "http://localhost:8080/members/registration-verification-email?token=" + token;
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -63,7 +68,6 @@ public class MailService {
         }
 
     }
-
 
     private void getCertificationMessage(MimeMessageHelper helper, String email, String link) throws MessagingException {
         helper.setTo(email);

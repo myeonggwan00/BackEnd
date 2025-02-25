@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Getter @Setter
+@Getter
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,7 +25,7 @@ public class Member {
     @Column(length = 30, nullable = false)
     private String nickname; // 사용자 닉네임
 
-    @Column(length = 100, nullable = false)
+    @Column(length = 100, nullable = false, unique = true)
     private String email;
 
     @Enumerated(EnumType.STRING)
@@ -33,4 +33,17 @@ public class Member {
     private Role role = Role.ROLE_USER; // 권한(사용자, 관리자)
 
     private LocalDate registerDate; // 회원가입 날짜
+
+    public void assignLoginIdFromEmail(String email) {
+        this.loginId = email;
+    }
+
+    public void updateMember(String nickname, String password) {
+        this.nickname = nickname;
+        this.password = password;
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
 }

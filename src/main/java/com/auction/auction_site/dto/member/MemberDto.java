@@ -5,11 +5,10 @@ import com.auction.auction_site.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
-@AllArgsConstructor
+@Getter
 @Builder
-@Getter @Setter
+@AllArgsConstructor
 public class MemberDto {
     private String loginId;
 
@@ -34,3 +33,5 @@ public class MemberDto {
                 .build();
     }
 }
+
+

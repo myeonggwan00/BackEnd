@@ -4,9 +4,8 @@ import com.auction.auction_site.dto.ErrorResponse;
 import com.auction.auction_site.dto.product.ProductRequestDto;
 import com.auction.auction_site.dto.product.ProductResponseDto;
 import com.auction.auction_site.entity.*;
-import com.auction.auction_site.repository.ImageRepository;
-import com.auction.auction_site.repository.MemberRepository;
-import com.auction.auction_site.repository.ProductRepository;
+import com.auction.auction_site.exception.EntityNotFound;
+import com.auction.auction_site.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -31,6 +31,12 @@ public class ProductService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private AuctionParticipantRepository auctionParticipantRepository;
+
+    @Autowired
+    private BidRepository bidRepository;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -92,12 +98,9 @@ public class ProductService {
     /**
      * 상품 등록
      */
-
+    @Transactional
     public ProductResponseDto createProduct(ProductRequestDto dto, String loginId) {
-        Member member = memberRepository.findByLoginId(loginId);
-        if (member == null) {
-            throw new IllegalStateException("유효하지 않은 인증 정보입니다.");
-        }
+        Member member = memberRepository.findByLoginId(loginId).orElseThrow(() -> new EntityNotFound("이메일에 해당하는 사용자를 찾을 수 없습니다."));
 
         List<Image> images = new ArrayList<>();
         List<String> imageUrls = new ArrayList<>();
@@ -167,8 +170,8 @@ public class ProductService {
                 .updatedAt(product.getUpdatedAt())
                 .viewCount(product.getViewCount())
                 .productStatus(product.getProductStatus())
-                .imageUrls(imageUrls)
-                .thumbnailUrl(thumbnailUrl)
+//                .imageUrls(imageUrls)
+//                .thumbnailUrl(thumbnailUrl)
                 .build();
     }
 
@@ -212,7 +215,7 @@ public class ProductService {
      */
     public ResponseEntity<?> productUpdate(Long id, String loginId, ProductRequestDto dto) {
         ErrorResponse errorResponse = new ErrorResponse();
-        Member member = memberRepository.findByLoginId(loginId);
+        Member member = memberRepository.findByLoginId(loginId).orElseThrow(() -> new EntityNotFound("이메일에 해당하는 사용자를 찾을 수 없습니다."));
         // 유저를 찾을 수 없는 경우
         if (loginId == null || loginId.trim().isEmpty()) {
             errorResponse.setStatus("FAIL");
@@ -319,10 +322,11 @@ public class ProductService {
     /**
      * 상품 삭제
      */
+    @Transactional
     public ResponseEntity<?> deleteProduct(Long id, String loginId) {
         // 회원 정보 확인
-        Member member = memberRepository.findByLoginId(loginId);
-        if (loginId == null || loginId.trim().isEmpty() || member == null) {
+        Member member = memberRepository.findByLoginId(loginId).orElseThrow(() -> new EntityNotFound("이메일에 해당하는 사용자를 찾을 수 없습니다."));
+        if (loginId == null || loginId.trim().isEmpty()) {
             throw new IllegalStateException("유효하지 않은 인증 정보입니다.");
         }
 
@@ -347,6 +351,9 @@ public class ProductService {
             errorResponse.setCode("UNAUTHORIZED");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
+
+        bidRepository.deleteByAuctionId(id);
+        auctionParticipantRepository.deleteByAuctionId(id);
 
         // 상품 삭제
         productRepository.delete(product);

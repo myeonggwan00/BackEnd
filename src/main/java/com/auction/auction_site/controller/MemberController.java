@@ -16,6 +16,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 회원과 관련된 요청을 처리하는 컨트롤러
+ */
 @RestController
 @RequestMapping("/members")
 @RequiredArgsConstructor
@@ -24,7 +27,7 @@ public class MemberController {
     private final MemberService memberService;
 
     /**
-     * 회원 정보 조회
+     * 회원 정보를 조회
      * *
      * 1. progress
      * - true: 입찰한 상품 중에서 경매가 진행 중인 것만 보여주기
@@ -42,7 +45,10 @@ public class MemberController {
         return ResponseEntity.ok().body(SuccessResponse.success("회원 정보 조회 완료", memberDetails));
     }
 
-    @GetMapping("/id/availability")
+    /**
+     * 회원 가입시 로그인 아이디 중복 검사
+     */
+    @GetMapping("/id-availability")
     public ResponseEntity<?> checkId(@RequestParam("value") String loginId) {
         if(memberService.checkLoginId(loginId)) {
             return ResponseEntity
@@ -53,7 +59,10 @@ public class MemberController {
         return ResponseEntity.ok().body(SuccessResponse.success("사용 가능한 아이디입니다.", null));
     }
 
-    @GetMapping("/nickname/availability")
+    /**
+     * 회원 가입시 닉네임 중복 검사
+     */
+    @GetMapping("/nickname-availability")
     public ResponseEntity<?> checkNickname(@RequestParam("value") String nickname) {
         if(memberService.checkNickname(nickname)) {
             return ResponseEntity
@@ -64,9 +73,11 @@ public class MemberController {
         return ResponseEntity.ok().body(SuccessResponse.success("사용 가능한 닉네임 입니다.", null));
     }
 
-    @PostMapping("/email/verification")
+    /**
+     * 회원 가입시 본인 인증에 사용할 링크를 포함한 이메일 전송
+     */
+    @PostMapping("/registration-verification-email")
     public ResponseEntity<?> sendEmailVerification(@RequestBody MailDto mailDto) {
-        System.out.println("email = " + mailDto.getEmail());
         String token = memberService.createToken(mailDto.getEmail());
         mailService.sendVerificationEmail(mailDto.getEmail(), token);
 
@@ -75,17 +86,16 @@ public class MemberController {
                 .body(SuccessResponse.success("이메일 인증 링크 전송 완료", null));
     }
 
-    @GetMapping("/email/verification")
-    public ResponseEntity<?> checkEmailVerification(@RequestParam String token) {
-
-        boolean checkEmail = memberService.checkEmail(token);
-
-        if(!checkEmail) {
+    /**
+     * 인증 링크 눌렀을 때의 인증 처리
+     */
+    @GetMapping("/registration-verification-email")
+    public ResponseEntity<?> checkEmailVerification(@RequestParam String tokenValue) {
+        if(!memberService.verifyToken(tokenValue)) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorResponse.error("AUTHENTICATION_FAILED", "본인 인증에 실패했습니다."));
         }
-
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -93,7 +103,7 @@ public class MemberController {
     }
 
     /**
-     * 회원 등록
+     * 회원 가입
      */
     @PostMapping
     public ResponseEntity<SuccessResponse> register(@RequestBody MemberDto memberDto) {
@@ -109,8 +119,7 @@ public class MemberController {
      */
     @PatchMapping
     public ResponseEntity<SuccessResponse> modify(@RequestBody UpdateMemberDto updateMemberDto, @RequestHeader("Authorization") String authorization) {
-        String token = authorization.split(" ")[1];
-        MemberResponseDto memberResponseDto = memberService.updateMember(updateMemberDto, token);
+        MemberResponseDto memberResponseDto = memberService.updateMember(updateMemberDto, authorization);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -122,10 +131,7 @@ public class MemberController {
      */
     @DeleteMapping
     public ResponseEntity<SuccessResponse> delete(@RequestHeader("Authorization") String authorization, HttpServletResponse response) {
-        String token = authorization.split(" ")[1];
-
-        memberService.deleteProcess(token);
-
+        memberService.deleteProcess(authorization);
 
         Cookie cookie = new Cookie("refresh", null);
         cookie.setMaxAge(0);
