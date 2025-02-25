@@ -2,6 +2,7 @@ package com.auction.auction_site.repository;
 
 import com.auction.auction_site.entity.AuctionParticipant;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -16,4 +17,12 @@ public interface AuctionParticipantRepository extends JpaRepository<AuctionParti
     @Query("SELECT ap.auctionParticipantStatus FROM AuctionParticipant ap WHERE  ap.member.id = :memberId AND ap.auction.id = :auctionId")
     String findAuctionParticipantStatusByMemberId(Long memberId, Long auctionId);
     List<AuctionParticipant> findByPaymentDeadlineBeforeAndPaymentStatus(LocalDateTime paymentDeadlineBefore, String paymentStatus);
+
+    @Modifying
+    @Query("DELETE FROM AuctionParticipant ap WHERE ap.member.id = :memberId")
+    void deleteByMemberId(Long memberId);
+
+    @Modifying
+    @Query("DELETE FROM AuctionParticipant ap WHERE ap.auction.id = :auctionId")
+    void deleteByAuctionId(Long auctionId);
 }

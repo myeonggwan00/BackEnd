@@ -26,7 +26,7 @@ public class Auction {
     @JoinColumn(name = "PRODUCT_ID")
     private Product product;
 
-    @OneToMany(mappedBy = "auction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "auction")
     private List<AuctionParticipant> participants;
 
     @OneToMany(mappedBy = "auction")

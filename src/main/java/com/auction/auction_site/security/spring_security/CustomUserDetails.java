@@ -10,7 +10,7 @@ import java.util.Collection;
 
 /**
  * 사용자 인증 및 권한에 필요한 username, password, role 정보를 저장하는 클래스
- *
+ * *
  * <동작 흐름>
  * 1. 로그인 요청 시, CustomUserDetailsService를 통해 데이터베이스에서 사용자 정보를 조회
  * 2. 조회된 정보를 CustomUserDetails에 담음

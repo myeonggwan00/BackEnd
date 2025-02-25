@@ -58,7 +58,8 @@ public class AuctionParticipant {
     public void configureWinner() {
         this.auctionParticipantStatus = AuctionParticipantStatus.WINNER.getLabel();
         this.paymentStatus = PaymentStatus.PENDING.getLabel();
-        this.paymentDeadline = LocalDateTime.now().plusHours(24);
+//        this.paymentDeadline = LocalDateTime.now().plusHours(24);
+        this.paymentDeadline = LocalDateTime.now().plusMinutes(1);
         this.auction.changeWinner(this.getMember().getId());
     }
 

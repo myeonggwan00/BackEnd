@@ -11,7 +11,6 @@ import com.auction.auction_site.repository.AuctionParticipantRepository;
 import com.auction.auction_site.repository.AuctionRepository;
 import com.auction.auction_site.repository.BidRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,8 +19,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
-import static com.auction.auction_site.entity.PaymentStatus.PENDING;
 
 @Service
 @Transactional
@@ -47,7 +44,10 @@ public class AuctionService {
             throw new AlreadyParticipatedException("이미 해당 경매에 참여중입니다.");
         }
 
-        return AuctionParticipant.participant(member, auction);
+        AuctionParticipant auctionParticipant = AuctionParticipant.participant(member, auction);
+        auctionParticipantRepository.save(auctionParticipant);
+
+        return auctionParticipant;
     }
 
     /**
@@ -86,6 +86,7 @@ public class AuctionService {
                 .auctionStatus(auction.getAuctionStatus()) // 경매 상태
                 .auctionParticipantStatus(participant.getAuctionParticipantStatus()) // 경매 참여자의 상태
                 .auctionParticipants(auction.getAuctionParticipantCount()) // 경매 참여자 수
+//                .auctionParticipants(auctionParticipantRepository.countAuctionParticipantsByAuctionId(auctionId))
                 .remainingAuctionTime(calculateTimeDifference(auction.getEndDate())) // 경매 종료까지 남은 시간
                 .bids(bids) // 입찰 내역
                 .build();
@@ -113,6 +114,7 @@ public class AuctionService {
                 .auctionStatus(auction.getAuctionStatus()) // 경매 상태
                 .auctionParticipantStatus(auctionParticipantStatus) // 현재 회원의 경매 승리자 여부
                 .auctionParticipants(auction.getAuctionParticipantCount()) // 경매 참여자 수
+//                .auctionParticipants(auctionParticipantRepository.countAuctionParticipantsByAuctionId(auctionId)) // 경매 참여자 수
                 .remainingAuctionTime(calculateTimeDifference(auction.getEndDate())) // 경매 종료까지 남은 시간
                 .bids(bids) // 입찰 내역
                 .build();
@@ -163,29 +165,6 @@ public class AuctionService {
             return String.format("%d일 %02d시간 %02d분", days, hours, minutes);
         } else { // 1일 미만 남은 경우: "X시간 X분"
             return String.format("%02d시간 %02d분", hours, minutes);
-        }
-    }
-
-    /**
-     * 1분마다 해당 스케줄 함수(경매 종료 여부 확인 및 종료시 최종 낙찰자 설정) 실행
-     */
-    @Scheduled(fixedRate = 60000) // 1분마다 실행
-    public void closeExpiredAuctions() {
-        // 경매 종료 기간이 지난 경매 조회
-        List<Auction> expiredAuctions = auctionRepository.findByEndDateBeforeAndAuctionStatus(LocalDateTime.now(), AuctionStatus.RUNNING.getLabel());
-
-        for (Auction auction : expiredAuctions) {
-            auction.changeAuctionStatus(AuctionStatus.FINISHED); // 경매 상태 종료로 변경
-            auction.determineFinalWinner(); // 경매 승리자 결정
-        }
-
-        // 결제 기간 내에 결제하지 않은 경매 참여자 조회
-        List<AuctionParticipant> auctionParticipant = auctionParticipantRepository.findByPaymentDeadlineBeforeAndPaymentStatus(LocalDateTime.now(), PENDING.getLabel());
-
-        if(auctionParticipant == null) { return; }
-
-        for (AuctionParticipant participant : auctionParticipant) {
-            participant.processExpiredPayment();
         }
     }
 }

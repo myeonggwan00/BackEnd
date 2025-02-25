@@ -8,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 에외 처리용 컨트롤러
+ */
 @Slf4j
 @RestControllerAdvice
 public class ExceptionController { // 예외 처리용 컨트롤러
@@ -77,4 +80,11 @@ public class ExceptionController { // 예외 처리용 컨트롤러
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errorResponse);
     }
+
+//    @ExceptionHandler(DataIntegrityViolationException.class)
+//    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+//        return ResponseEntity
+//                .status(HttpStatus.BAD_REQUEST)
+//                .body(new ErrorResponse("fail", "BAD_REQUEST","UNIQUE KEY ERROR"));
+//    }
 }
